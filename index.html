@@ -75,8 +75,16 @@ button { cursor: pointer; }
   display: flex; align-items: center; gap: 10px;
   border-bottom: 1px solid rgba(201, 164, 92, .35);
 }
-.app-title { font-size: 20px; display: flex; align-items: center; gap: 8px; margin-right: auto; white-space: nowrap; }
+.brand { margin-right: auto; display: flex; align-items: center; gap: 12px; min-width: 0; }
+.app-title { font-size: 20px; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 .app-title small { font-family: var(--sans); font-size: 11px; opacity: .7; letter-spacing: .1em; }
+/* 同期状態 */
+.sync { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; letter-spacing: .04em; white-space: nowrap; opacity: .85; }
+.sync .dot { width: 7px; height: 7px; border-radius: 50%; background: #7fbf6e; flex: none; }
+.sync[data-state="syncing"] .dot { background: var(--gold); animation: syncPulse 1.2s ease-in-out infinite; }
+.sync[data-state="offline"] .dot { background: transparent; box-shadow: inset 0 0 0 1.5px #d98a74; }
+@keyframes syncPulse { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .sync[data-state="syncing"] .dot { animation: none; } }
 .hbtn {
   background: transparent; border: 1px solid rgba(201, 164, 92, .5); color: var(--brand-text);
   border-radius: 999px; min-height: 38px; min-width: 38px; padding: 0 12px;
@@ -99,6 +107,7 @@ button { cursor: pointer; }
 .menu .danger { color: var(--danger); }
 .menu hr { border: 0; border-top: 1px solid var(--border); margin: 6px 4px; }
 .menu .menu-label { font-size: 11px; color: var(--muted); padding: 6px 12px 2px; letter-spacing: .08em; }
+.menu .menu-account { font-size: 13px; color: var(--text-2); padding: 2px 12px 6px; word-break: break-all; }
 
 /* ===== タブ ===== */
 .tabs {
@@ -124,7 +133,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 16px; }
 .toolbar .search::after {
   content: ""; position: absolute; left: 23px; top: 55%; width: 2px; height: 7px; background: var(--muted); transform: rotate(-45deg);
 }
-input[type="text"], input[type="search"], input[type="number"], input[type="date"], select, textarea {
+input[type="text"], input[type="search"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], select, textarea {
   background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
   padding: 8px 10px; min-height: 40px; width: 100%;
 }
@@ -327,6 +336,26 @@ textarea { min-height: 90px; resize: vertical; }
 .mini-table th:first-child, .mini-table td:first-child { text-align: left; }
 .mini-table th { color: var(--text-2); font-weight: 600; font-size: 12px; }
 
+/* ===== 起動中・ログイン画面 ===== */
+body:not([data-auth="in"]) :is(.app-header, .tabs, main) { display: none; }
+body:not([data-auth="out"]) #authScreen { display: none; }
+body:not([data-auth="loading"]) #bootScreen { display: none; }
+.boot { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; text-align: center; color: var(--text-2); padding: 16px; }
+.boot .btn { margin-top: 12px; }
+.auth {
+  min-height: 100vh; min-height: 100dvh; display: grid; place-items: center;
+  padding: calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+}
+.auth-card { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
+.auth-head { background: var(--brand); color: var(--brand-text); padding: 24px 22px 18px; text-align: center; }
+.auth-head svg { display: block; margin: 0 auto 6px; }
+.auth-head h1 { font-size: 22px; }
+.auth-head small { display: block; font-size: 11px; letter-spacing: .14em; opacity: .7; }
+.auth-body { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 12px; }
+.auth-body input { font-size: 16px; }   /* iPhone で入力時に拡大されないよう 16px 以上 */
+.auth-body .btn { width: 100%; min-height: 44px; margin-top: 4px; }
+.auth-note { font-size: 12px; color: var(--muted); margin: 0; }
+
 /* ===== トースト ===== */
 #toast {
   position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px);
@@ -339,6 +368,8 @@ textarea { min-height: 90px; resize: vertical; }
 /* ===== スマートフォン ===== */
 @media (max-width: 720px) {
   .app-title { font-size: 17px; }
+  .brand { flex-direction: column; align-items: flex-start; gap: 0; }
+  .sync { font-size: 10px; }
   .app-title small { display: none; }
   .hbtn .lbl { display: none; }
   .panels { grid-template-columns: minmax(0, 1fr); }
@@ -358,19 +389,47 @@ textarea { min-height: 90px; resize: vertical; }
 }
 </style>
 </head>
-<body>
+<body data-auth="loading">
+
+<!-- ===== 起動中 ===== -->
+<div class="boot" id="bootScreen"><div id="bootMsg">読み込み中…</div></div>
+
+<!-- ===== ログイン画面 ===== -->
+<section class="auth" id="authScreen">
+  <form class="auth-card" id="loginForm" novalidate>
+    <div class="auth-head">
+      <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><path d="M27 6h10v13c0 3 8 6 8 15v22c0 2-1 3-3 3H22c-2 0-3-1-3-3V34c0-9 8-12 8-15z" fill="currentColor"/></svg>
+      <h1>お酒コレクション</h1>
+      <small>MY BOTTLE LOG</small>
+    </div>
+    <div class="auth-body">
+      <p class="auth-note">ログインすると、スマートフォンとPCでデータが同期されます。</p>
+      <div class="field"><label for="loginEmail">メールアドレス</label><input type="email" id="loginEmail" autocomplete="username" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" required></div>
+      <div class="field"><label for="loginPass">パスワード</label><input type="password" id="loginPass" autocomplete="current-password" required></div>
+      <div class="error-msg" id="loginErr" hidden></div>
+      <button type="submit" class="btn primary" id="loginBtn">ログイン</button>
+    </div>
+  </form>
+</section>
 
 <!-- ===== ヘッダー ===== -->
 <header class="app-header">
-  <h1 class="app-title">
-    <svg width="22" height="22" viewBox="0 0 64 64" aria-hidden="true"><path d="M27 6h10v13c0 3 8 6 8 15v22c0 2-1 3-3 3H22c-2 0-3-1-3-3V34c0-9 8-12 8-15z" fill="currentColor"/></svg>
-    お酒コレクション <small>MY BOTTLE LOG</small>
-  </h1>
+  <div class="brand">
+    <h1 class="app-title">
+      <svg width="22" height="22" viewBox="0 0 64 64" aria-hidden="true"><path d="M27 6h10v13c0 3 8 6 8 15v22c0 2-1 3-3 3H22c-2 0-3-1-3-3V34c0-9 8-12 8-15z" fill="currentColor"/></svg>
+      お酒コレクション <small>MY BOTTLE LOG</small>
+    </h1>
+    <span class="sync" id="syncBadge" data-state="syncing" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span class="txt">同期中</span></span>
+  </div>
   <button class="hbtn primary" id="addBtn" type="button">＋<span class="lbl">新規追加</span></button>
   <button class="hbtn" id="themeBtn" type="button" title="ライト／ダーク切替" aria-label="ライト／ダーク切替">☀</button>
   <div class="menu-wrap">
     <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false" title="メニュー" aria-label="メニュー">⚙</button>
     <div class="menu" id="menu" hidden>
+      <div class="menu-label">アカウント</div>
+      <div class="menu-account" id="accountEmail"></div>
+      <button type="button" data-action="logout">ログアウト</button>
+      <hr>
       <div class="menu-label">バックアップ</div>
       <button type="button" data-action="export-json">JSONエクスポート（写真含む）</button>
       <button type="button" data-action="import-json">JSONインポート</button>
@@ -379,6 +438,9 @@ textarea { min-height: 90px; resize: vertical; }
       <div class="menu-label">サンプルデータ</div>
       <button type="button" data-action="add-samples">サンプルデータを投入（5件）</button>
       <button type="button" data-action="delete-samples">サンプルのみ削除</button>
+      <hr>
+      <div class="menu-label">以前のデータ</div>
+      <button type="button" data-action="migrate">この端末のデータをクラウドへ移行</button>
       <hr>
       <button type="button" data-action="delete-all" class="danger">全データを削除</button>
     </div>
@@ -534,7 +596,46 @@ textarea { min-height: 90px; resize: vertical; }
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
-'use strict';
+// Firebase SDK（CDN）の読み込みに失敗した場合の案内（こちらは通常のスクリプト）
+setTimeout(function () {
+  if (window.__sakeAppReady) return;
+  var el = document.getElementById('bootMsg');
+  if (el) el.innerHTML = '読み込みに時間がかかっています。<br>電波の良い場所で再読み込みしてください。<br><button type="button" class="btn" onclick="location.reload()">再読み込み</button>';
+}, 15000);
+</script>
+<script type="module">
+/* =========================================================
+   Firebase（モジュラー版 SDK を gstatic の CDN から読み込む）
+   ※ バージョンを変えるときは sw.js の SDK_VERSION も合わせる
+   ========================================================= */
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
+import {
+  initializeAuth, indexedDBLocalPersistence, browserLocalPersistence,
+  onAuthStateChanged, signInWithEmailAndPassword, signOut,
+} from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+import {
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  collection, doc, onSnapshot, getDoc, getDocFromCache, writeBatch,
+} from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+
+window.__sakeAppReady = true;
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyBpqeYX7S0X0Fz7ogfrS6KQhT1CscaPcWM',
+  authDomain: 'sake-collection.firebaseapp.com',
+  projectId: 'sake-collection',
+  storageBucket: 'sake-collection.firebasestorage.app',
+  messagingSenderId: '395417760720',
+  appId: '1:395417760720:web:2d68dc24cd1e3d2c897fd5',
+};
+const fbApp = initializeApp(firebaseConfig);
+// ログイン状態は端末に保存（iPhone のホーム画面アプリでも IndexedDB に保持される）
+const auth = initializeAuth(fbApp, { persistence: [indexedDBLocalPersistence, browserLocalPersistence] });
+// オフライン永続キャッシュ：電波がなくても読み書きでき、復帰後に自動で同期される
+const db = initializeFirestore(fbApp, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+  ignoreUndefinedProperties: true,
+});
 
 /* =========================================================
    定数
@@ -544,9 +645,11 @@ const STATUSES = ['未開栓', '開栓済み', '飲み切り'];
 const PHOTO_LABELS = ['ボトル正面', 'ラベル裏', 'その他'];
 const MAX_PHOTOS = 3;
 const PHOTO_MAX_SIDE = 1200;   // 保存用：長辺px
-const PHOTO_QUALITY = 0.8;     // 保存用：JPEG品質
-const THUMB_MAX_SIDE = 480;    // サムネイル：長辺px
-const THUMB_QUALITY = 0.75;
+const PHOTO_QUALITIES = [0.8, 0.7, 0.6, 0.5];   // 保存用：JPEG品質（容量オーバー時は順に下げる）
+const PHOTO_MAX_BYTES = 900 * 1024;             // 写真1枚（Base64）の上限。Firestore の1ドキュメント1MB制限に収めるため
+const THUMB_MAX_SIDE = 360;    // サムネイル：長辺px（一覧用に軽量化）
+const THUMB_QUALITY = 0.7;
+const BATCH_LIMIT = 400;       // 1回の一括書き込みの件数上限（Firestore の上限は500）
 const DEFAULT_COUNTRIES = ['日本', 'スコットランド', 'アイルランド', 'アメリカ', 'カナダ', 'イギリス', 'フランス', 'イタリア', 'スペイン', 'ポルトガル', 'ドイツ', 'オランダ', 'ベルギー', 'メキシコ', 'キューバ', 'ジャマイカ', 'タイ', '台湾', '韓国', '中国', 'インド', 'オーストラリア', 'ニュージーランド', 'チリ', 'アルゼンチン', '南アフリカ', 'ロシア', 'ポーランド'];
 const SORT_OPTIONS = [
   ['purchaseDate:desc', '購入日（新しい順）'],
@@ -562,6 +665,7 @@ const SORT_OPTIONS = [
 ];
 const LS_THEME = 'sakeCollection.theme';
 const LS_VIEW = 'sakeCollection.view';
+const LS_MIGRATE = 'sakeCollection.migrate.';   // + uid（'done' | 'never'）
 
 /* =========================================================
    小さなユーティリティ
@@ -639,60 +743,12 @@ function downloadBlob(blob, filename) {
 }
 
 /* =========================================================
-   IndexedDB ラッパー
-   - bottles : お酒の記録（写真は photoIds で参照）
-   - photos  : 写真本体（blob）とサムネイル（thumb）
-   - meta    : 採番カウンタなど（key: 'lastNo'）
-   ========================================================= */
-const DB_NAME = 'sakeCollectionDB';
-const DB_VERSION = 1;
-let db = null;
-
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = () => {
-      const d = req.result;
-      if (!d.objectStoreNames.contains('bottles')) d.createObjectStore('bottles', { keyPath: 'id', autoIncrement: true });
-      if (!d.objectStoreNames.contains('photos')) d.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
-      if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta', { keyPath: 'key' });
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-// IDBRequest を Promise 化
-const rq = (req) => new Promise((resolve, reject) => {
-  req.onsuccess = () => resolve(req.result);
-  req.onerror = () => reject(req.error);
-});
-
-// 1つのトランザクション内で処理を実行し、完了（コミット）後に結果を返す
-// ※ body 内では IDB 以外の非同期処理（画像変換など）を await しないこと
-function txRun(storeNames, mode, body) {
-  return new Promise((resolve, reject) => {
-    const t = db.transaction(storeNames, mode);
-    const stores = {};
-    storeNames.forEach((n) => { stores[n] = t.objectStore(n); });
-    let result;
-    t.oncomplete = () => resolve(result);
-    t.onerror = () => reject(t.error);
-    t.onabort = () => reject(t.error || new Error('トランザクションが中断されました'));
-    Promise.resolve().then(() => body(stores)).then((r) => { result = r; }).catch((e) => {
-      try { t.abort(); } catch (_) { /* 既に終了 */ }
-      reject(e);
-    });
-  });
-}
-const idbGetAll = (store) => txRun([store], 'readonly', (s) => rq(s[store].getAll()));
-const idbGet = (store, key) => txRun([store], 'readonly', (s) => rq(s[store].get(key)));
-
-/* =========================================================
    アプリの状態
    ========================================================= */
 const state = {
-  bottles: [],          // 全レコード（写真本体は含まない）
+  bottles: [],          // 全レコード（id は Firestore のドキュメントID。写真本体は含まない）
+  loaded: false,        // 最初のデータを受信したか
+  metaLastNo: 0,        // users/{uid}/meta/counter の lastNo
   lastNo: 0,            // 実データの採番カウンタ（削除しても戻さない）
   tab: 'list',
   view: 'table',        // 'table' | 'card'
@@ -700,20 +756,133 @@ const state = {
   sortKey: 'purchaseDate', sortDir: 'desc',
 };
 
-// サムネイルの objectURL キャッシュ（photoId → URL）
-const thumbCache = new Map();
-function clearThumbCache() {
-  thumbCache.forEach((url) => URL.revokeObjectURL(url));
-  thumbCache.clear();
+/* =========================================================
+   Firestore のデータ構造
+   users/{uid}/bottles/{id}    … お酒の記録。photos: [{ id, thumb }]（thumb は軽量サムネイルの data URL）
+   users/{uid}/photos/{id}     … 写真本体（data: Base64 の data URL）。1枚1ドキュメント
+   users/{uid}/meta/counter    … { lastNo }（No. の採番カウンタ）
+   ========================================================= */
+let uid = null;
+let unsubs = [];
+const userCol = (name) => collection(db, 'users', uid, name);
+const bottleRef = (id) => (id ? doc(userCol('bottles'), id) : doc(userCol('bottles')));
+const photoRef = (id) => (id ? doc(userCol('photos'), id) : doc(userCol('photos')));
+const counterRef = () => doc(db, 'users', uid, 'meta', 'counter');
+
+// 保存用の形にする（画面用の id や旧形式の photoIds は含めない）
+function toBottleDoc(b) {
+  const { id, photoIds, ...rest } = b;
+  return rest;
+}
+// 作成順（同順位の並びを安定させる）
+const cmpCreated = (a, b) => (a.createdAt || 0) - (b.createdAt || 0) || String(a.id).localeCompare(String(b.id));
+
+function recomputeLastNo() {
+  const maxNo = state.bottles.filter((b) => !b.isSample).reduce((m, b) => Math.max(m, b.no || 0), 0);
+  state.lastNo = Math.max(state.metaLastNo, maxNo);
 }
 
-// DBから全データを読み直して再描画
-async function reload() {
-  state.bottles = await idbGetAll('bottles');
-  const meta = await idbGet('meta', 'lastNo');
-  const maxNo = state.bottles.filter((b) => !b.isSample).reduce((m, b) => Math.max(m, b.no || 0), 0);
-  state.lastNo = Math.max(meta ? meta.value : 0, maxNo);
-  renderAll();
+/* ---------- 書き込み ----------
+   オフラインでも書き込めるよう、サーバーの応答は待たない（画面にはすぐ反映され、
+   電波が戻ると自動で送信される）。未送信の件数は同期状態の表示に使う */
+const sync = { pendingOps: 0, pendingWrites: false, fromCache: true, connectingUntil: 0 };
+
+function commitBatch(batch) {
+  sync.pendingOps++;
+  renderSync();
+  batch.commit()
+    .catch((err) => { console.error(err); toast('クラウドへの保存に失敗しました：' + errText(err)); })
+    .finally(() => { sync.pendingOps--; renderSync(); });
+}
+// ops：(batch) => void の配列。件数上限ごとに分けてコミットする
+function commitOps(ops) {
+  for (let i = 0; i < ops.length; i += BATCH_LIMIT) {
+    const batch = writeBatch(db);
+    ops.slice(i, i + BATCH_LIMIT).forEach((op) => op(batch));
+    commitBatch(batch);
+  }
+}
+function errText(err) {
+  if (err?.code === 'permission-denied') return '権限がありません（ログインし直してください）';
+  return err?.message || String(err);
+}
+
+/* ---------- 同期状態の表示（同期済み／同期中／オフライン） ---------- */
+function markConnecting() {
+  sync.connectingUntil = Date.now() + 10000;
+  setTimeout(renderSync, 10100);
+}
+function renderSync() {
+  const el = $('#syncBadge');
+  const pending = sync.pendingOps > 0 || sync.pendingWrites;
+  let st;
+  if (!navigator.onLine) st = 'offline';
+  else if (sync.fromCache) st = Date.now() < sync.connectingUntil ? 'syncing' : 'offline';
+  else st = pending ? 'syncing' : 'synced';
+  const label = { synced: '同期済み', syncing: '同期中', offline: pending ? 'オフライン（未送信あり）' : 'オフライン' }[st];
+  el.dataset.state = st;
+  $('.txt', el).textContent = label;
+  el.title = st === 'offline' ? '電波が戻ると自動で同期されます' : label;
+}
+
+/* ---------- 読み込み（リアルタイム反映） ---------- */
+function subscribe() {
+  markConnecting();
+  unsubs.push(onSnapshot(userCol('bottles'), { includeMetadataChanges: true }, (snap) => {
+    sync.fromCache = snap.metadata.fromCache;
+    sync.pendingWrites = snap.metadata.hasPendingWrites;
+    renderSync();
+    if (snap.docChanges().length || !state.loaded) {
+      state.bottles = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+      state.loaded = true;
+      recomputeLastNo();
+      renderAll();
+      refreshViewerBottle();
+    }
+    // サーバーの最新データを受け取った時点で、No. の重複修正と旧データの移行確認を行う
+    if (!snap.metadata.fromCache) {
+      if (!snap.metadata.hasPendingWrites) fixDuplicateNumbers();
+      checkLegacyMigration();
+    }
+  }, onListenError));
+  unsubs.push(onSnapshot(counterRef(), (snap) => {
+    state.metaLastNo = snap.exists() ? (snap.data().lastNo || 0) : 0;
+    recomputeLastNo();
+  }, onListenError));
+}
+function unsubscribeAll() {
+  unsubs.forEach((u) => u());
+  unsubs = [];
+}
+function onListenError(err) {
+  console.error(err);
+  toast(err?.code === 'permission-denied'
+    ? 'データを読み込む権限がありません（Firestore のルールをご確認ください）'
+    : 'データの読み込みに失敗しました：' + errText(err));
+}
+
+// スマホとPCで同時にオフライン登録すると No. が重複しうるため、後から登録した方を振り直す
+function fixDuplicateNumbers() {
+  const groups = new Map();
+  state.bottles.filter((b) => !b.isSample && b.no).forEach((b) => {
+    if (!groups.has(b.no)) groups.set(b.no, []);
+    groups.get(b.no).push(b);
+  });
+  const dups = [...groups.values()].filter((g) => g.length > 1);
+  if (!dups.length) return;
+  let lastNo = state.lastNo;
+  const now = Date.now();
+  const batch = writeBatch(db);
+  const msgs = [];
+  dups.forEach((g) => g.sort(cmpCreated).slice(1).forEach((b) => {
+    lastNo++;
+    batch.update(bottleRef(b.id), { no: lastNo, updatedAt: now });
+    msgs.push(`No.${b.no}→No.${lastNo}`);
+  }));
+  batch.set(counterRef(), { lastNo }, { merge: true });
+  state.metaLastNo = lastNo;
+  commitBatch(batch);
+  toast(`No. の重複を修正しました（${msgs.join('、')}）`);
 }
 
 /* =========================================================
@@ -738,24 +907,21 @@ const weekLabel = (n) => (n != null && n >= 1) ? `第${n}週` : '—';
 /* =========================================================
    画像処理（Canvas でリサイズ＋JPEG圧縮）
    ========================================================= */
-async function loadImage(blob) {
-  const url = URL.createObjectURL(blob);
+// Blob（ファイル）または data URL から画像を読み込む
+async function loadImage(src) {
+  const isBlob = src instanceof Blob;
+  const url = isBlob ? URL.createObjectURL(src) : src;
   try {
     const img = new Image();
     img.src = url;
     await img.decode();
     return img;
   } finally {
-    URL.revokeObjectURL(url);
+    if (isBlob) URL.revokeObjectURL(url);
   }
 }
-function canvasToBlob(canvas, quality) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((b) => b ? resolve(b) : reject(new Error('画像の変換に失敗しました')), 'image/jpeg', quality);
-  });
-}
-// 画像（img または canvas）を長辺 maxSide 以内に縮小して JPEG Blob にする
-function resizeToBlob(source, maxSide, quality) {
+// 画像（img または canvas）を長辺 maxSide 以内に縮小した canvas を返す
+function drawScaled(source, maxSide) {
   const w = source.naturalWidth || source.width;
   const h = source.naturalHeight || source.height;
   const scale = Math.min(1, maxSide / Math.max(w, h));
@@ -768,31 +934,36 @@ function resizeToBlob(source, maxSide, quality) {
   ctx.fillRect(0, 0, cw, ch);
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(source, 0, 0, cw, ch);
-  return canvasToBlob(canvas, quality);
+  return canvas;
 }
-// アップロードされたファイル → 保存用 blob とサムネイル
-async function processImage(fileOrBlob) {
-  const img = await loadImage(fileOrBlob);
-  const blob = await resizeToBlob(img, PHOTO_MAX_SIDE, PHOTO_QUALITY);
-  const thumb = await resizeToBlob(img, THUMB_MAX_SIDE, THUMB_QUALITY);
-  return { blob, thumb };
+// 保存用の本体画像：Base64 で PHOTO_MAX_BYTES 以下になるまで品質→解像度の順に下げて再圧縮
+function encodePhoto(source) {
+  let side = PHOTO_MAX_SIDE;
+  for (;;) {
+    const canvas = drawScaled(source, side);
+    for (const q of PHOTO_QUALITIES) {
+      const data = canvas.toDataURL('image/jpeg', q);
+      if (data.length <= PHOTO_MAX_BYTES) return { data, width: canvas.width, height: canvas.height };
+    }
+    if (side <= 300) throw new Error('写真を十分に小さくできませんでした');
+    side = Math.round(Math.min(side, Math.max(canvas.width, canvas.height)) * 0.8);
+  }
 }
-function blobToDataURL(blob) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = () => reject(r.error);
-    r.readAsDataURL(blob);
-  });
+// 一覧用の軽量サムネイル（data URL）
+const makeThumb = (source) => drawScaled(source, THUMB_MAX_SIDE).toDataURL('image/jpeg', THUMB_QUALITY);
+
+// 画像（img / canvas）→ { data, width, height, thumb }
+function preparePhotoFrom(source) {
+  return { ...encodePhoto(source), thumb: makeThumb(source) };
 }
-// data URL → Blob（file:// でも動くよう fetch を使わずに変換）
-function dataURLToBlob(dataUrl) {
-  const m = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(dataUrl || '');
-  if (!m) throw new Error('画像データの形式が不正です');
-  const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return new Blob([bytes], { type: m[1] || 'image/jpeg' });
+// ファイル・Blob・data URL → { data, width, height, thumb }
+async function preparePhoto(src) {
+  const img = await loadImage(src);
+  // 既に上限内の JPEG（バックアップの写真など）は再圧縮せずそのまま使う
+  if (typeof src === 'string' && /^data:image\/jpeg;base64,/.test(src) && src.length <= PHOTO_MAX_BYTES) {
+    return { data: src, width: img.naturalWidth, height: img.naturalHeight, thumb: makeThumb(img) };
+  }
+  return preparePhotoFrom(img);
 }
 
 /* =========================================================
@@ -829,11 +1000,11 @@ function filteredBottles() {
   list.sort((a, b) => {
     const va = getter(a), vb = getter(b);
     const na = va == null || va === '', nb = vb == null || vb === '';
-    if (na && nb) return b.id - a.id;
+    if (na && nb) return cmpCreated(b, a);
     if (na) return 1;          // 空の値は常に末尾
     if (nb) return -1;
     let c = (typeof va === 'string') ? va.localeCompare(vb, 'ja') : va - vb;
-    if (c === 0) c = (a.purchaseDate || '').localeCompare(b.purchaseDate || '') || (a.id - b.id);
+    if (c === 0) c = (a.purchaseDate || '').localeCompare(b.purchaseDate || '') || cmpCreated(a, b);
     return c * dir;
   });
   return list;
@@ -901,6 +1072,11 @@ function renderList() {
   const sampleCount = state.bottles.filter((b) => b.isSample).length;
   const list = filteredBottles();
 
+  if (!state.loaded) {
+    $('#listSummary').textContent = '';
+    area.innerHTML = '<div class="empty"><p>データを読み込んでいます…</p></div>';
+    return;
+  }
   if (all === 0) {
     $('#listSummary').textContent = '';
     area.innerHTML = `
@@ -926,7 +1102,6 @@ function renderList() {
 
   const base = weekBaseDate();
   area.innerHTML = state.view === 'table' ? tableHTML(list, base) : cardsHTML(list, base);
-  hydrateThumbs(area);
 }
 
 function tableHTML(list, base) {
@@ -935,11 +1110,11 @@ function tableHTML(list, base) {
     return `<th data-sort="${key}" class="${cls}" aria-sort="${state.sortKey === key ? (state.sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}">${label}${arrow}</th>`;
   };
   const rows = list.map((b) => {
-    const n = b.photoIds?.length || 0;
+    const n = b.photos?.length || 0;
     const photo = n
-      ? `<button type="button" class="thumb-btn" data-viewer="${b.id}" aria-label="写真を拡大"><img class="thumb" data-photo="${b.photoIds[0]}" alt="">${n > 1 ? `<span class="cnt">${n}</span>` : ''}</button>`
+      ? `<button type="button" class="thumb-btn" data-viewer="${esc(b.id)}" aria-label="写真を拡大"><img class="thumb" src="${esc(b.photos[0].thumb)}" alt="" loading="lazy" decoding="async">${n > 1 ? `<span class="cnt">${n}</span>` : ''}</button>`
       : `<div class="no-photo">${BOTTLE_ICON}</div>`;
-    return `<tr data-id="${b.id}">
+    return `<tr data-id="${esc(b.id)}">
       <td>${photo}</td>
       <td class="num">${esc(displayNo(b))}${b.isSample ? ' <span class="badge sample">サンプル</span>' : ''}</td>
       <td class="num">${esc(b.purchaseDate || '')}</td>
@@ -966,12 +1141,12 @@ function tableHTML(list, base) {
 
 function cardsHTML(list, base) {
   return `<div class="cards">${list.map((b) => {
-    const n = b.photoIds?.length || 0;
+    const n = b.photos?.length || 0;
     const photo = n
-      ? `<button type="button" class="card-photo" data-viewer="${b.id}" aria-label="写真を拡大"><img data-photo="${b.photoIds[0]}" alt="${esc(b.name)}">`
+      ? `<button type="button" class="card-photo" data-viewer="${esc(b.id)}" aria-label="写真を拡大"><img src="${esc(b.photos[0].thumb)}" alt="${esc(b.name)}" loading="lazy" decoding="async">`
       : `<div class="card-photo"><div class="ph">${BOTTLE_ICON}</div>`;
     const endTag = n ? '</button>' : '</div>';
-    return `<article class="card" data-id="${b.id}">
+    return `<article class="card" data-id="${esc(b.id)}">
       ${photo}
         <div class="overlay"><span class="badge st-${esc(b.status)}">${esc(b.status)}</span>${b.isSample ? '<span class="badge sample">サンプル</span>' : ''}</div>
         ${n > 1 ? `<span class="cnt">📷 ${n}</span>` : ''}
@@ -986,58 +1161,83 @@ function cardsHTML(list, base) {
   }).join('')}</div>`;
 }
 
-// data-photo 属性を持つ img にサムネイルを読み込む
-async function hydrateThumbs(root) {
-  const imgs = $$('img[data-photo]', root);
-  const missing = [...new Set(imgs.map((i) => Number(i.dataset.photo)).filter((id) => !thumbCache.has(id)))];
-  if (missing.length) {
-    await txRun(['photos'], 'readonly', async (s) => {
-      for (const id of missing) {
-        const p = await rq(s.photos.get(id));
-        if (p) thumbCache.set(id, URL.createObjectURL(p.thumb || p.blob));
-      }
-    });
-  }
-  imgs.forEach((img) => {
-    const url = thumbCache.get(Number(img.dataset.photo));
-    if (url) img.src = url;
-  });
-}
-
 /* =========================================================
    写真ビューア（拡大表示・左右切替）
+   一覧はサムネイルのみ。本体画像は拡大表示のときだけ読み込む
    ========================================================= */
-const viewer = { bottle: null, idx: 0, url: null };
+const viewer = { bottle: null, idx: 0, token: 0 };
+const photoDataCache = new Map();   // photoId → data URL（写真は作成後に変わらないので使い回す）
+function cachePhotoData(id, data) {
+  photoDataCache.set(id, data);
+  if (photoDataCache.size > 12) photoDataCache.delete(photoDataCache.keys().next().value);
+}
 
-async function openViewer(bottleId, idx = 0) {
+// 写真本体を取得（端末のキャッシュ → サーバーの順）
+async function fetchPhotoData(id) {
+  if (photoDataCache.has(id)) return photoDataCache.get(id);
+  let snap = null;
+  try { snap = await getDocFromCache(photoRef(id)); } catch (_) { /* キャッシュに無い */ }
+  if (!snap || !snap.exists()) snap = await getDoc(photoRef(id));
+  const data = snap.exists() ? snap.data().data : null;
+  if (data) cachePhotoData(id, data);
+  return data;
+}
+
+function openViewer(bottleId, idx = 0) {
   const b = state.bottles.find((x) => x.id === bottleId);
-  if (!b || !b.photoIds?.length) return;
+  if (!b || !b.photos?.length) return;
   viewer.bottle = b;
   viewer.idx = idx;
   $('#viewerTitle').textContent = b.name;
   const dlg = $('#viewerDialog');
   if (!dlg.open) dlg.showModal();
-  await showViewerPhoto();
+  showViewerPhoto();
+}
+// 表示中の記録が他の端末で更新・削除された場合に追従する
+function refreshViewerBottle() {
+  if (!viewer.bottle) return;
+  const b = state.bottles.find((x) => x.id === viewer.bottle.id);
+  if (!b || !b.photos?.length) { $('#viewerDialog').close(); return; }
+  if (b === viewer.bottle) return;
+  const curId = viewer.bottle.photos[viewer.idx]?.id;
+  viewer.bottle = b;
+  const i = b.photos.findIndex((p) => p.id === curId);
+  viewer.idx = i >= 0 ? i : Math.min(viewer.idx, b.photos.length - 1);
+  $('#viewerTitle').textContent = b.name;
+  showViewerPhoto();
 }
 async function showViewerPhoto() {
   const b = viewer.bottle;
-  const n = b.photoIds.length;
-  const id = b.photoIds[viewer.idx];
-  const p = await idbGet('photos', id);
-  if (viewer.url) URL.revokeObjectURL(viewer.url);
-  viewer.url = p ? URL.createObjectURL(p.blob) : null;
+  const n = b.photos.length;
+  const p = b.photos[viewer.idx];
+  const token = ++viewer.token;
   const img = $('#viewerImg');
-  img.src = viewer.url || '';
+  const caption = `${PHOTO_LABELS[viewer.idx]} ・ ${viewer.idx + 1} / ${n}`;
   img.alt = `${b.name}（${PHOTO_LABELS[viewer.idx]}）`;
-  $('#viewerCaption').textContent = `${PHOTO_LABELS[viewer.idx]} ・ ${viewer.idx + 1} / ${n}`;
   $('#viewerPrev').disabled = viewer.idx === 0;
   $('#viewerNext').disabled = viewer.idx >= n - 1;
   $('#viewerPrev').hidden = $('#viewerNext').hidden = n <= 1;
+  // まずサムネイルを表示し、本体が届いたら差し替える
+  const cached = photoDataCache.get(p.id);
+  img.src = cached || p.thumb;
+  $('#viewerCaption').textContent = cached ? caption : `${caption} ・ 読み込み中…`;
+  if (cached) return;
+  let note = '';
+  try {
+    const data = await fetchPhotoData(p.id);
+    if (token !== viewer.token) return;
+    if (data) img.src = data; else note = '（写真が見つかりません）';
+  } catch (err) {
+    console.warn(err);
+    if (token !== viewer.token) return;
+    note = '（オフラインのため縮小画像を表示中）';
+  }
+  $('#viewerCaption').textContent = note ? `${caption} ・ ${note}` : caption;
 }
 function viewerStep(d) {
   if (!viewer.bottle) return;
   const next = viewer.idx + d;
-  if (next < 0 || next >= viewer.bottle.photoIds.length) return;
+  if (next < 0 || next >= viewer.bottle.photos.length) return;
   viewer.idx = next;
   showViewerPhoto();
 }
@@ -1062,8 +1262,8 @@ function setupViewer() {
   // 背景クリックで閉じる
   dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
   dlg.addEventListener('close', () => {
-    if (viewer.url) URL.revokeObjectURL(viewer.url);
-    viewer.url = null; viewer.bottle = null;
+    viewer.bottle = null;
+    viewer.token++;
     $('#viewerImg').removeAttribute('src');
   });
 }
@@ -1097,7 +1297,7 @@ async function confirmDanger(title, message, okLabel = '削除する') {
 const form = {
   editingId: null,     // 編集中のレコードID（新規は null）
   rating: 0,
-  photos: [],          // { id: 既存写真ID|null, blob, thumb, url, busy }
+  photos: [],          // { id: 既存写真ID|null, thumb, data（新規のみ）, width, height, busy }
   originalPhotoIds: [],
 };
 
@@ -1155,7 +1355,7 @@ function setupForm() {
   $('#editForm').addEventListener('submit', (e) => { e.preventDefault(); saveForm(); });
   $('#deleteBtn').addEventListener('click', deleteFromForm);
   $$('#editDialog [data-close]').forEach((b) => b.addEventListener('click', () => $('#editDialog').close()));
-  $('#editDialog').addEventListener('close', cleanupFormPhotos);
+  $('#editDialog').addEventListener('close', () => { form.photos = []; });
 }
 
 function renderRating() {
@@ -1177,12 +1377,12 @@ function updateCalcFields() {
 }
 
 // フォームを開く（bottle が null なら新規）
-async function openForm(bottle = null) {
-  cleanupFormPhotos();
+function openForm(bottle = null) {
   form.editingId = bottle ? bottle.id : null;
   form.rating = bottle?.rating || 0;
-  form.photos = [];
-  form.originalPhotoIds = bottle?.photoIds ? [...bottle.photoIds] : [];
+  // 既存写真はドキュメント内のサムネイルで表示（本体は読み込まない）
+  form.photos = (bottle?.photos || []).map((p) => ({ id: p.id, thumb: p.thumb }));
+  form.originalPhotoIds = form.photos.map((p) => p.id);
 
   $('#editTitle').textContent = bottle ? '記録を編集' : '新規追加';
   $('#fNo').textContent = bottle ? displayNo(bottle) : `${state.lastNo + 1}（保存時に確定）`;
@@ -1207,26 +1407,12 @@ async function openForm(bottle = null) {
   renderRating();
   updateCalcFields();
 
-  // 既存写真のサムネイルを読み込む
-  if (form.originalPhotoIds.length) {
-    const recs = await txRun(['photos'], 'readonly', async (s) => {
-      const out = [];
-      for (const id of form.originalPhotoIds) out.push(await rq(s.photos.get(id)));
-      return out;
-    });
-    form.photos = recs.filter(Boolean).map((p) => ({ id: p.id, thumb: p.thumb, url: URL.createObjectURL(p.thumb || p.blob) }));
-  }
   renderPhotoSlots();
 
   const dlg = $('#editDialog');
   if (!dlg.open) dlg.showModal();
   $('#editDialog .dlg-body').scrollTop = 0;
   if (!bottle) $('#fName').focus();
-}
-
-function cleanupFormPhotos() {
-  form.photos.forEach((p) => p.url && URL.revokeObjectURL(p.url));
-  form.photos = [];
 }
 
 function renderPhotoSlots() {
@@ -1237,7 +1423,7 @@ function renderPhotoSlots() {
     if (p && p.busy) {
       box = '<div class="slot-busy">処理中…</div>';
     } else if (p) {
-      box = `<img src="${p.url}" alt="${PHOTO_LABELS[i]}">`;
+      box = `<img src="${esc(p.thumb)}" alt="${PHOTO_LABELS[i]}">`;
       tools = `<div class="slot-tools">
         <button type="button" data-move="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''} aria-label="前へ移動">◀</button>
         <button type="button" class="del" data-remove="${i}" aria-label="削除">✕</button>
@@ -1273,8 +1459,7 @@ function onPhotoSlotClick(e) {
   }
   const rm = e.target.closest('[data-remove]');
   if (rm) {
-    const [p] = form.photos.splice(Number(rm.dataset.remove), 1);
-    if (p?.url) URL.revokeObjectURL(p.url);
+    form.photos.splice(Number(rm.dataset.remove), 1);
     renderPhotoSlots();
   }
 }
@@ -1293,8 +1478,7 @@ async function addPhotoFiles(fileList) {
   for (let k = 0; k < targets.length; k++) {
     const entry = entries[k];
     try {
-      const { blob, thumb } = await processImage(targets[k]);
-      Object.assign(entry, { blob, thumb, url: URL.createObjectURL(thumb), busy: false });
+      Object.assign(entry, await preparePhoto(targets[k]), { busy: false });
     } catch (err) {
       console.error(err);
       toast('この画像は読み込めませんでした（対応形式：JPEG / PNG など）');
@@ -1338,42 +1522,36 @@ async function saveForm() {
 
   const now = Date.now();
   const existing = state.bottles.find((b) => b.id === form.editingId) || null;
+  if (form.editingId && !existing) { toast('この記録は別の端末で削除されました'); $('#editDialog').close(); return; }
   const keepIds = new Set(form.photos.filter((p) => p.id).map((p) => p.id));
   const removedIds = form.originalPhotoIds.filter((id) => !keepIds.has(id));
-  const photos = form.photos.slice();
 
-  $('#saveBtn').disabled = true;
-  try {
-    const saved = await txRun(['bottles', 'photos', 'meta'], 'readwrite', async (s) => {
-      for (const id of removedIds) await rq(s.photos.delete(id));
-      const photoIds = [];
-      for (const p of photos) {
-        if (p.id) photoIds.push(p.id);
-        else photoIds.push(await rq(s.photos.add({ blob: p.blob, thumb: p.thumb, createdAt: now })));
-      }
-      let rec;
-      if (existing) {
-        rec = { ...existing, ...data, photoIds, updatedAt: now };
-      } else {
-        // 新規：採番カウンタを進める（削除しても番号は再利用しない）
-        const meta = await rq(s.meta.get('lastNo'));
-        const next = Math.max(meta ? meta.value : 0, state.lastNo) + 1;
-        await rq(s.meta.put({ key: 'lastNo', value: next }));
-        rec = { ...data, no: next, isSample: false, photoIds, createdAt: now, updatedAt: now };
-      }
-      rec.id = await rq(s.bottles.put(rec));
-      return rec;
-    });
-    removedIds.forEach((id) => { const u = thumbCache.get(id); if (u) { URL.revokeObjectURL(u); thumbCache.delete(id); } });
-    $('#editDialog').close();
-    await reload();
-    toast(existing ? '更新しました' : `No.${saved.no} を登録しました`);
-  } catch (err) {
-    console.error(err);
-    toast('保存に失敗しました：' + (err.message || err));
-  } finally {
-    $('#saveBtn').disabled = false;
+  const ref = existing ? bottleRef(existing.id) : bottleRef();
+  const batch = writeBatch(db);
+  removedIds.forEach((id) => batch.delete(photoRef(id)));
+  // 写真は1枚ごとに別ドキュメント。記録側には ID と軽量サムネイルだけを持たせる
+  const photos = form.photos.map((p) => {
+    if (p.id) return { id: p.id, thumb: p.thumb };
+    const pref = photoRef();
+    batch.set(pref, { bottleId: ref.id, data: p.data, width: p.width, height: p.height, createdAt: now });
+    cachePhotoData(pref.id, p.data);
+    return { id: pref.id, thumb: p.thumb };
+  });
+  let rec;
+  if (existing) {
+    rec = { ...toBottleDoc(existing), ...data, photos, updatedAt: now };
+  } else {
+    // 新規：採番カウンタを進める（削除しても番号は再利用しない）
+    const next = state.lastNo + 1;
+    batch.set(counterRef(), { lastNo: next }, { merge: true });
+    state.metaLastNo = next;
+    rec = { ...data, no: next, isSample: false, photos, createdAt: now, updatedAt: now };
   }
+  batch.set(ref, rec);
+  commitBatch(batch);
+  $('#editDialog').close();
+  const msg = existing ? '更新しました' : `No.${rec.no} を登録しました`;
+  toast(navigator.onLine ? msg : `${msg}（電波が戻ると同期されます）`);
 }
 
 async function deleteFromForm() {
@@ -1381,23 +1559,22 @@ async function deleteFromForm() {
   if (!b) return;
   const ok = await confirmDanger('記録の削除', `「${b.name}」（No.${displayNo(b)}）を削除します。\n写真も一緒に削除され、元に戻せません。`);
   if (!ok) return;
-  await deleteBottles([b]);
+  deleteBottles([b]);
   $('#editDialog').close();
-  await reload();
   toast('削除しました');
 }
 
 // 複数レコードと写真をまとめて削除
-async function deleteBottles(list) {
-  await txRun(['bottles', 'photos'], 'readwrite', async (s) => {
-    for (const b of list) {
-      for (const pid of (b.photoIds || [])) await rq(s.photos.delete(pid));
-      await rq(s.bottles.delete(b.id));
-    }
+function bottleDeleteOps(list) {
+  const ops = [];
+  list.forEach((b) => {
+    (b.photos || []).forEach((p) => ops.push((batch) => batch.delete(photoRef(p.id))));
+    ops.push((batch) => batch.delete(bottleRef(b.id)));
   });
-  list.forEach((b) => (b.photoIds || []).forEach((id) => {
-    const u = thumbCache.get(id); if (u) { URL.revokeObjectURL(u); thumbCache.delete(id); }
-  }));
+  return ops;
+}
+function deleteBottles(list) {
+  commitOps(bottleDeleteOps(list));
 }
 
 /* =========================================================
@@ -1562,20 +1739,30 @@ const EXPORT_FIELDS = ['no', 'isSample', 'sampleNo', 'purchaseDate', 'name', 'br
 
 async function exportJSON() {
   if (!state.bottles.length) { toast('エクスポートするデータがありません'); return; }
-  toast('エクスポートを準備しています…');
-  const photos = await idbGetAll('photos');
-  const pmap = new Map(photos.map((p) => [p.id, p]));
+  toast('エクスポートを準備しています…（写真をダウンロード中）');
   const bottles = [];
+  let missing = 0;
   const sorted = state.bottles.slice().sort((a, b) => (SORT_VALUE.no(a) - SORT_VALUE.no(b)));
   for (const b of sorted) {
     const rec = {};
     EXPORT_FIELDS.forEach((k) => { if (b[k] !== undefined) rec[k] = b[k]; });
     rec.photos = [];
-    for (const id of (b.photoIds || [])) {
-      const p = pmap.get(id);
-      if (p) rec.photos.push(await blobToDataURL(p.blob));
+    for (const p of (b.photos || [])) {
+      try {
+        const data = await fetchPhotoData(p.id);
+        if (data) rec.photos.push(data); else missing++;
+      } catch (err) {
+        console.warn(err);
+        missing++;
+      }
     }
     bottles.push(rec);
+  }
+  if (missing) {
+    const v = await ask({ title: '写真を取得できませんでした',
+      message: `${missing}枚の写真を取得できませんでした（オフラインの可能性があります）。\nその写真を含めずにエクスポートしますか？`,
+      buttons: [{ label: 'キャンセル', value: '' }, { label: 'エクスポートする', value: 'ok', kind: 'primary' }] });
+    if (v !== 'ok') return;
   }
   const data = { app: 'sake-collection', version: 1, exportedAt: new Date().toISOString(), lastNo: state.lastNo, bottles };
   downloadBlob(new Blob([JSON.stringify(data)], { type: 'application/json' }), `sake-collection-${todayStr()}.json`);
@@ -1622,58 +1809,67 @@ async function importJSON(file) {
 
   toast('インポート中…（写真が多いと時間がかかります）');
   try {
-    // 画像の変換はトランザクションの外で先に済ませる
+    // 写真の変換（Base64・サムネイル生成）を先に済ませる
     const prepared = [];
-    for (const raw of data.bottles) {
+    for (const [i, raw] of data.bottles.entries()) {
       const rec = normalizeBottle(raw || {});
       const photos = [];
       for (const src of (Array.isArray(raw?.photos) ? raw.photos.slice(0, MAX_PHOTOS) : [])) {
         try {
-          const blob = dataURLToBlob(typeof src === 'string' ? src : src.dataUrl);
-          const img = await loadImage(blob);
-          photos.push({ blob, thumb: await resizeToBlob(img, THUMB_MAX_SIDE, THUMB_QUALITY) });
+          photos.push(await preparePhoto(typeof src === 'string' ? src : src.dataUrl));
         } catch (e) { console.warn('写真をスキップしました', e); }
       }
       prepared.push({ rec, photos });
+      if (i % 10 === 9) toast(`インポート中… ${i + 1} / ${data.bottles.length}件`);
     }
-    // 実データは元の No. 順、サンプルは後ろ
-    prepared.sort((a, b) => (a.rec.isSample - b.rec.isSample) || ((a.rec.no || 1e9) - (b.rec.no || 1e9)));
-
     const overwrite = mode === 'overwrite';
-    await txRun(['bottles', 'photos', 'meta'], 'readwrite', async (s) => {
-      if (overwrite) {
-        await rq(s.bottles.clear()); await rq(s.photos.clear()); await rq(s.meta.clear());
-      }
-      let lastNo = overwrite ? 0 : state.lastNo;
-      let sampleMax = overwrite ? 0 : state.bottles.filter((b) => b.isSample).reduce((m, b) => Math.max(m, b.sampleNo || 0), 0);
-      // 上書き時は元の No. を維持（重複・欠番は後で振る）
-      if (overwrite) prepared.forEach(({ rec }) => { if (!rec.isSample && rec.no) lastNo = Math.max(lastNo, rec.no); });
-      const assigned = new Set();
-      for (const { rec, photos } of prepared) {
-        const photoIds = [];
-        for (const p of photos) photoIds.push(await rq(s.photos.add({ ...p, createdAt: Date.now() })));
-        rec.photoIds = photoIds;
-        if (rec.isSample) {
-          rec.no = null;
-          rec.sampleNo = ++sampleMax;
-        } else if (overwrite && rec.no && !assigned.has(rec.no)) {
-          assigned.add(rec.no);
-        } else {
-          rec.no = ++lastNo;
-        }
-        if (!rec.isSample) delete rec.sampleNo;
-        await rq(s.bottles.add(rec));
-      }
-      if (overwrite && Number.isInteger(data.lastNo)) lastNo = Math.max(lastNo, data.lastNo);
-      await rq(s.meta.put({ key: 'lastNo', value: lastNo }));
-    });
-    clearThumbCache();
-    await reload();
+    writePrepared(prepared, { replace: overwrite, keepNo: overwrite, importedLastNo: data.lastNo });
     toast(`${prepared.length}件をインポートしました`);
   } catch (err) {
     console.error(err);
     toast('インポートに失敗しました：' + (err.message || err));
   }
+}
+
+/* インポート・移行の共通処理：prepared = [{ rec, photos: [{ data, width, height, thumb }] }]
+   replace   … 既存データをすべて削除してから書き込む
+   keepNo    … 元の No. を維持する（重複する No. だけ続きから振り直す）
+   それ以外は No. を現在の続きから振り直す。サンプルは S番号を続きから振る */
+function writePrepared(prepared, { replace = false, keepNo = false, importedLastNo = null } = {}) {
+  prepared.sort((a, b) => (a.rec.isSample - b.rec.isSample) || ((a.rec.no || 1e9) - (b.rec.no || 1e9)));
+  if (replace) commitOps([...bottleDeleteOps(state.bottles), (batch) => batch.delete(counterRef())]);
+  const remaining = replace ? [] : state.bottles;
+  let lastNo = replace ? 0 : state.lastNo;
+  let sampleMax = remaining.filter((b) => b.isSample).reduce((m, b) => Math.max(m, b.sampleNo || 0), 0);
+  const assigned = new Set(remaining.filter((b) => !b.isSample && b.no).map((b) => b.no));
+  if (keepNo) prepared.forEach(({ rec }) => { if (!rec.isSample && rec.no) lastNo = Math.max(lastNo, rec.no); });
+  const now = Date.now();
+  for (const { rec, photos } of prepared) {
+    if (rec.isSample) {
+      rec.no = null;
+      rec.sampleNo = ++sampleMax;
+    } else if (keepNo && rec.no && !assigned.has(rec.no)) {
+      assigned.add(rec.no);
+    } else {
+      rec.no = ++lastNo;
+    }
+    if (!rec.isSample) delete rec.sampleNo;
+    // 1本ごとに1回の書き込み（写真3枚でも 1回あたり約3MB で上限10MB に収まる）
+    const batch = writeBatch(db);
+    const ref = bottleRef();
+    rec.photos = photos.map((p) => {
+      const pref = photoRef();
+      batch.set(pref, { bottleId: ref.id, data: p.data, width: p.width, height: p.height, createdAt: now });
+      return { id: pref.id, thumb: p.thumb };
+    });
+    batch.set(ref, rec);
+    commitBatch(batch);
+  }
+  if (keepNo && Number.isInteger(importedLastNo)) lastNo = Math.max(lastNo, importedLastNo);
+  const batch = writeBatch(db);
+  batch.set(counterRef(), { lastNo }, { merge: true });
+  commitBatch(batch);
+  state.metaLastNo = lastNo;
 }
 
 function exportCSV() {
@@ -1689,7 +1885,7 @@ function exportCSV() {
     const wn = weekNumber(b.purchaseDate, base);
     lines.push([displayNo(b), b.isSample ? '○' : '', b.purchaseDate, wn && wn >= 1 ? `第${wn}週` : '', b.name, b.brand, b.category, b.subCategory,
       b.country, b.region, b.volumeMl ?? '', b.abv ?? '', b.priceTHB ?? '', up == null ? '' : Math.round(up * 10) / 10,
-      b.shop, b.status, b.rating || '', b.memo, (b.photoIds || []).length].map(q).join(','));
+      b.shop, b.status, b.rating || '', b.memo, (b.photos || []).length].map(q).join(','));
   });
   // Excel で文字化けしないよう UTF-8 BOM を付ける
   const blob = new Blob(['﻿' + lines.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
@@ -1775,30 +1971,25 @@ async function addSamples() {
     const ok = await ask({ title: 'サンプルデータ', message: `サンプルが既に${existing.length}件あります。入れ直しますか？`,
       buttons: [{ label: 'キャンセル', value: '' }, { label: '入れ直す', value: 'ok', kind: 'primary' }] });
     if (ok !== 'ok') return;
-    await deleteBottles(existing);
+    deleteBottles(existing);
   }
-  // 画像生成はトランザクションの外で
   const today = todayStr();
-  const prepared = [];
+  const now = Date.now();
+  const batch = writeBatch(db);
   for (const [i, s] of SAMPLE_DATA.entries()) {
-    const imgs = [];
+    const ref = bottleRef();
+    const photos = [];
     const count = i === 0 ? 2 : 1;          // 1件目は2枚（ビューアの左右切替の確認用）
     for (let v = 0; v < count; v++) {
-      const cv = drawSampleImage(s, v);
-      imgs.push({ blob: await resizeToBlob(cv, PHOTO_MAX_SIDE, PHOTO_QUALITY), thumb: await resizeToBlob(cv, THUMB_MAX_SIDE, THUMB_QUALITY) });
+      const p = preparePhotoFrom(drawSampleImage(s, v));
+      const pref = photoRef();
+      batch.set(pref, { bottleId: ref.id, data: p.data, width: p.width, height: p.height, createdAt: now });
+      photos.push({ id: pref.id, thumb: p.thumb });
     }
-    prepared.push({ s, imgs, sampleNo: i + 1, date: addDays(today, s.days) });
+    const { days, colors, label, ...fields } = s;
+    batch.set(ref, { ...fields, purchaseDate: addDays(today, s.days), no: null, isSample: true, sampleNo: i + 1, photos, createdAt: now, updatedAt: now });
   }
-  const now = Date.now();
-  await txRun(['bottles', 'photos'], 'readwrite', async (st) => {
-    for (const { s, imgs, sampleNo, date } of prepared) {
-      const photoIds = [];
-      for (const im of imgs) photoIds.push(await rq(st.photos.add({ ...im, createdAt: now })));
-      const { days, colors, label, ...fields } = s;
-      await rq(st.bottles.add({ ...fields, purchaseDate: date, no: null, isSample: true, sampleNo, photoIds, createdAt: now, updatedAt: now }));
-    }
-  });
-  await reload();
+  commitBatch(batch);
   toast('サンプルデータを5件投入しました');
 }
 
@@ -1806,8 +1997,7 @@ async function deleteSamples() {
   const samples = state.bottles.filter((b) => b.isSample);
   if (!samples.length) { toast('サンプルデータはありません'); return; }
   if (!(await confirmDanger('サンプルのみ削除', `サンプルデータ${samples.length}件を削除します。\n実データは削除されません。`))) return;
-  await deleteBottles(samples);
-  await reload();
+  deleteBottles(samples);
   toast('サンプルデータを削除しました');
 }
 
@@ -1815,12 +2005,190 @@ async function deleteAll() {
   if (!state.bottles.length) { toast('削除するデータがありません'); return; }
   if (!(await confirmDanger('全データを削除', `登録済みの${state.bottles.length}件と写真をすべて削除します。\n削除前にJSONエクスポートでバックアップを取ることをおすすめします。`, '次へ'))) return;
   if (!(await confirmDanger('最終確認', '本当にすべて削除しますか？この操作は元に戻せません。\n（No.の採番も1からやり直しになります）', 'すべて削除'))) return;
-  await txRun(['bottles', 'photos', 'meta'], 'readwrite', async (s) => {
-    await rq(s.bottles.clear()); await rq(s.photos.clear()); await rq(s.meta.clear());
-  });
-  clearThumbCache();
-  await reload();
+  commitOps([...bottleDeleteOps(state.bottles), (batch) => batch.delete(counterRef())]);
+  state.metaLastNo = 0;
   toast('すべてのデータを削除しました');
+}
+
+/* =========================================================
+   以前のデータ（端末の IndexedDB）のクラウド移行
+   旧バージョンは sakeCollectionDB（bottles / photos / meta）に保存していた。
+   移行後も端末内のデータは削除しない（安全のため）
+   ========================================================= */
+const LEGACY_DB = 'sakeCollectionDB';
+let migrationChecked = false;   // ログインごとに1回だけ自動で確認する
+let migrating = false;
+
+// 旧DBを開く（存在しなければ null。open で新規作成されてしまった場合は削除して戻す）
+async function openLegacyDB() {
+  if (!('indexedDB' in window)) return null;
+  try {
+    if (indexedDB.databases) {
+      const list = await indexedDB.databases();
+      if (!list.some((d) => d.name === LEGACY_DB)) return null;
+    }
+    return await new Promise((resolve) => {
+      let created = false;
+      const req = indexedDB.open(LEGACY_DB);
+      req.onupgradeneeded = () => { created = true; };
+      req.onsuccess = () => {
+        const d = req.result;
+        if (!created && d.objectStoreNames.contains('bottles') && d.objectStoreNames.contains('photos')) { resolve(d); return; }
+        d.close();
+        if (created) indexedDB.deleteDatabase(LEGACY_DB);
+        resolve(null);
+      };
+      req.onerror = () => resolve(null);
+    });
+  } catch (err) {
+    console.warn(err);
+    return null;
+  }
+}
+function legacyRead(ldb, store, key) {
+  return new Promise((resolve, reject) => {
+    const os = ldb.transaction(store, 'readonly').objectStore(store);
+    const req = key === undefined ? os.getAll() : os.get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+// 確認ダイアログが開いていれば閉じるまで待つ
+async function waitAskClosed() {
+  const dlg = $('#askDialog');
+  while (dlg.open) await new Promise((r) => dlg.addEventListener('close', r, { once: true }));
+}
+
+// fromMenu：⚙メニューから実行した場合（「今後表示しない」の設定に関係なく確認する）
+async function checkLegacyMigration(fromMenu = false) {
+  if (!uid || migrating) return;
+  if (!fromMenu && migrationChecked) return;
+  migrationChecked = true;
+  const key = LS_MIGRATE + uid;
+  const flag = lsGet(key);
+  if (!fromMenu && flag) return;
+  const myUid = uid;
+  const ldb = await openLegacyDB();
+  if (!ldb) { if (fromMenu) toast('この端末に以前のデータはありません'); return; }
+  try {
+    const bottles = await legacyRead(ldb, 'bottles');
+    if (!bottles.length) { if (fromMenu) toast('この端末に以前のデータはありません'); return; }
+    await waitAskClosed();
+    if (uid !== myUid) return;
+    const samples = bottles.filter((b) => b.isSample).length;
+    const again = flag === 'done' ? '\n\n※ この端末のデータは既に移行済みです。もう一度移行すると同じ記録が重複します。' : '';
+    const v = await ask({
+      title: 'クラウドへ移行しますか？',
+      message: `この端末に以前のデータが${bottles.length}件${samples ? `（うちサンプル${samples}件）` : ''}あります。\nクラウドへ移行すると、スマートフォンとPCで同期されるようになります。\n\n端末内のデータは削除されずに残ります。${again}`,
+      buttons: [
+        ...(fromMenu ? [] : [{ label: '今後表示しない', value: 'never' }]),
+        { label: fromMenu ? 'キャンセル' : '今はしない', value: '' },
+        { label: '移行する', value: 'ok', kind: 'primary' },
+      ],
+    });
+    if (uid !== myUid) return;
+    if (v === 'never') { lsSet(key, 'never'); toast('あとで ⚙メニューから移行できます'); return; }
+    if (v !== 'ok') return;
+    migrating = true;
+    await migrateLegacy(ldb, bottles);
+    lsSet(key, 'done');
+  } catch (err) {
+    console.error(err);
+    toast('移行に失敗しました：' + (err.message || err));
+  } finally {
+    migrating = false;
+    ldb.close();
+  }
+}
+
+async function migrateLegacy(ldb, bottles) {
+  toast('移行の準備中…（写真を変換しています）');
+  const photos = await legacyRead(ldb, 'photos');
+  const pmap = new Map(photos.map((p) => [p.id, p]));
+  const meta = await legacyRead(ldb, 'meta', 'lastNo').catch(() => null);
+  const prepared = [];
+  let skipped = 0;
+  for (const [i, raw] of bottles.entries()) {
+    const rec = normalizeBottle(raw || {});
+    const list = [];
+    for (const pid of (raw.photoIds || []).slice(0, MAX_PHOTOS)) {
+      const p = pmap.get(pid);
+      if (!p?.blob) { skipped++; continue; }
+      try { list.push(await preparePhoto(p.blob)); } catch (e) { console.warn(e); skipped++; }
+    }
+    prepared.push({ rec, photos: list });
+    if (i % 5 === 4) toast(`移行の準備中… ${i + 1} / ${bottles.length}件`);
+  }
+  // クラウドに実データが無ければ元の No. を引き継ぎ、あれば続きから振り直す
+  const cloudHasReal = state.bottles.some((b) => !b.isSample);
+  writePrepared(prepared, { keepNo: !cloudHasReal, importedLastNo: meta ? meta.value : null });
+  toast(`${prepared.length}件をクラウドへ移行しました${skipped ? `（読み込めない写真${skipped}枚を除く）` : ''}`);
+}
+
+/* =========================================================
+   ログイン／ログアウト
+   ========================================================= */
+const AUTH_ERRORS = {
+  'auth/invalid-email': 'メールアドレスの形式が正しくありません',
+  'auth/invalid-credential': 'メールアドレスまたはパスワードが違います',
+  'auth/wrong-password': 'メールアドレスまたはパスワードが違います',
+  'auth/user-not-found': 'メールアドレスまたはパスワードが違います',
+  'auth/user-disabled': 'このアカウントは無効になっています',
+  'auth/too-many-requests': 'ログインの試行回数が多すぎます。しばらく待ってからお試しください',
+  'auth/network-request-failed': '通信できませんでした。電波の良い場所でお試しください',
+};
+
+async function login(e) {
+  e.preventDefault();
+  const email = $('#loginEmail').value.trim();
+  const pass = $('#loginPass').value;
+  const err = $('#loginErr');
+  err.hidden = true;
+  if (!email || !pass) { err.textContent = 'メールアドレスとパスワードを入力してください'; err.hidden = false; return; }
+  $('#loginBtn').disabled = true;
+  $('#loginBtn').textContent = 'ログイン中…';
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    $('#loginPass').value = '';
+  } catch (ex) {
+    console.warn(ex);
+    err.textContent = AUTH_ERRORS[ex.code] || `ログインできませんでした（${ex.code || ex.message}）`;
+    err.hidden = false;
+  } finally {
+    $('#loginBtn').disabled = false;
+    $('#loginBtn').textContent = 'ログイン';
+  }
+}
+
+async function logout() {
+  const pending = sync.pendingOps > 0 || sync.pendingWrites;
+  const v = await ask({
+    title: 'ログアウト',
+    message: `${auth.currentUser?.email || ''} からログアウトしますか？` +
+      (pending ? '\n\nまだクラウドに送信されていない変更があります。次に同じアカウントでログインしたときに送信されます。' : ''),
+    buttons: [{ label: 'キャンセル', value: '' }, { label: 'ログアウト', value: 'ok', kind: 'primary' }],
+  });
+  if (v !== 'ok') return;
+  await signOut(auth);
+}
+
+function onAuthChanged(user) {
+  unsubscribeAll();
+  ['#editDialog', '#viewerDialog', '#askDialog'].forEach((sel) => { const d = $(sel); if (d.open) d.close(); });
+  Object.assign(state, { bottles: [], loaded: false, metaLastNo: 0, lastNo: 0 });
+  Object.assign(sync, { pendingWrites: false, fromCache: true });
+  photoDataCache.clear();
+  migrationChecked = false;
+  uid = user ? user.uid : null;
+  document.body.dataset.auth = user ? 'in' : 'out';
+  if (user) {
+    $('#accountEmail').textContent = user.email || '';
+    subscribe();
+    renderAll();
+    renderSync();
+  } else {
+    $('#loginErr').hidden = true;
+  }
 }
 
 /* =========================================================
@@ -1886,9 +2254,9 @@ function setupEvents() {
       return;
     }
     const v = e.target.closest('[data-viewer]');
-    if (v) { openViewer(Number(v.dataset.viewer)); return; }
+    if (v) { openViewer(v.dataset.viewer); return; }
     const item = e.target.closest('[data-id]');
-    if (item) openForm(state.bottles.find((b) => b.id === Number(item.dataset.id)));
+    if (item) openForm(state.bottles.find((b) => b.id === item.dataset.id));
   });
 
   // ヘッダー
@@ -1922,6 +2290,8 @@ function setupEvents() {
       'add-samples': addSamples,
       'delete-samples': deleteSamples,
       'delete-all': deleteAll,
+      'migrate': () => checkLegacyMigration(true),
+      'logout': logout,
     })[btn.dataset.action]();
   });
   $('#importFile').addEventListener('change', (e) => {
@@ -1933,6 +2303,13 @@ function setupEvents() {
   // ダイアログの背景クリックで閉じる（編集フォームは誤操作防止のため閉じない）
   $('#askDialog').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close(''); });
   $$('#viewerDialog [data-close]').forEach((b) => b.addEventListener('click', () => $('#viewerDialog').close()));
+
+  // ログイン
+  $('#loginForm').addEventListener('submit', login);
+
+  // 通信状態の変化を同期表示に反映
+  window.addEventListener('online', () => { markConnecting(); renderSync(); });
+  window.addEventListener('offline', renderSync);
 
   // 画面幅が変わったらグラフを描き直す
   let rTimer = null;
@@ -1954,15 +2331,12 @@ async function init() {
   setupForm();
   setupViewer();
 
-  try {
-    if (!('indexedDB' in window)) throw new Error('このブラウザは IndexedDB に対応していません');
-    db = await openDB();
-    await reload();
-  } catch (err) {
-    console.error(err);
-    $('#listArea').innerHTML = `<div class="empty"><h2>データベースを開けませんでした</h2>
-      <p>${esc(err.message || err)}<br>プライベートブラウズを解除するか、別のブラウザ（Chrome / Edge / Safari 最新版）でお試しください。</p></div>`;
+  // オフラインでも起動できるよう Service Worker を登録（GitHub Pages などの https 環境のみ）
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('Service Worker の登録に失敗しました', err));
   }
+
+  onAuthStateChanged(auth, onAuthChanged);
 }
 init();
 </script>
