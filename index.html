@@ -1,0 +1,1970 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2b1d14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="お酒コレクション">
+<title>お酒コレクション</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232b1d14'/%3E%3Cpath d='M27 8h10v12c0 3 7 6 7 14v20c0 2-1 3-3 3H23c-2 0-3-1-3-3V34c0-8 7-11 7-14z' fill='%23c9a45c'/%3E%3Crect x='22' y='36' width='20' height='12' fill='%232b1d14'/%3E%3C/svg%3E">
+<style>
+/* ===== カラートークン（ライト） ===== */
+:root {
+  --bg: #f5efe4;
+  --surface: #fffdf8;
+  --surface-2: #f0e7d7;
+  --text: #2b1d14;
+  --text-2: #6b5646;
+  --muted: #968270;
+  --border: #e0d3bd;
+  --accent: #8a6526;
+  --accent-contrast: #fffdf8;
+  --gold: #c9a45c;
+  --brand: #2b1d14;
+  --brand-text: #e9cf94;
+  --bar: #a67c34;
+  --grid: #e8dcc8;
+  --danger: #a3372b;
+  --shadow: 0 1px 2px rgba(43, 29, 20, .06), 0 4px 14px rgba(43, 29, 20, .07);
+  --radius: 12px;
+  --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "BIZ UDPMincho", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Noto Sans JP", "Meiryo", sans-serif;
+  color-scheme: light;
+}
+/* ===== カラートークン（ダーク：OS設定に従う場合） ===== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15100b; --surface: #1f1710; --surface-2: #2a1f16; --text: #f1e6d4; --text-2: #c9b69b;
+    --muted: #8f7c67; --border: #3a2c20; --accent: #d9b56c; --accent-contrast: #1f1710;
+    --brand: #0f0a07; --brand-text: #e0c07e; --bar: #c9a45c; --grid: #33271c; --danger: #e0786b;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+}
+/* ===== カラートークン（ダーク：手動切替） ===== */
+:root[data-theme="dark"] {
+  --bg: #15100b; --surface: #1f1710; --surface-2: #2a1f16; --text: #f1e6d4; --text-2: #c9b69b;
+  --muted: #8f7c67; --border: #3a2c20; --accent: #d9b56c; --accent-contrast: #1f1710;
+  --brand: #0f0a07; --brand-text: #e0c07e; --bar: #c9a45c; --grid: #33271c; --danger: #e0786b;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+  color-scheme: dark;
+}
+
+/* ===== 基本 ===== */
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: var(--sans); font-size: 15px; line-height: 1.6;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: .02em; margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ===== ヘッダー ===== */
+.app-header {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--brand); color: var(--brand-text);
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid rgba(201, 164, 92, .35);
+}
+.app-title { font-size: 20px; display: flex; align-items: center; gap: 8px; margin-right: auto; white-space: nowrap; }
+.app-title small { font-family: var(--sans); font-size: 11px; opacity: .7; letter-spacing: .1em; }
+.hbtn {
+  background: transparent; border: 1px solid rgba(201, 164, 92, .5); color: var(--brand-text);
+  border-radius: 999px; min-height: 38px; min-width: 38px; padding: 0 12px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+}
+.hbtn:hover { background: rgba(201, 164, 92, .15); }
+.hbtn.primary { background: var(--gold); color: #2b1d14; border-color: var(--gold); font-weight: 600; }
+.hbtn.primary:hover { filter: brightness(1.06); }
+.menu-wrap { position: relative; }
+.menu {
+  position: absolute; right: 0; top: calc(100% + 8px); min-width: 230px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: 6px; z-index: 30;
+}
+.menu button {
+  display: block; width: 100%; text-align: left; background: none; border: 0;
+  padding: 10px 12px; border-radius: 8px;
+}
+.menu button:hover { background: var(--surface-2); }
+.menu .danger { color: var(--danger); }
+.menu hr { border: 0; border-top: 1px solid var(--border); margin: 6px 4px; }
+.menu .menu-label { font-size: 11px; color: var(--muted); padding: 6px 12px 2px; letter-spacing: .08em; }
+
+/* ===== タブ ===== */
+.tabs {
+  display: flex; gap: 4px; padding: 0 16px; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  background: none; border: 0; padding: 12px 16px; color: var(--text-2);
+  border-bottom: 2px solid transparent; font-family: var(--serif); font-size: 16px;
+}
+.tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+main { max-width: 1280px; margin: 0 auto; padding: 16px; }
+
+/* ===== ツールバー ===== */
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.toolbar .search { flex: 1 1 220px; position: relative; }
+.toolbar .search input { width: 100%; padding-left: 34px; }
+.toolbar .search::before {
+  content: ""; position: absolute; left: 12px; top: 50%; width: 12px; height: 12px; transform: translateY(-60%);
+  border: 2px solid var(--muted); border-radius: 50%;
+}
+.toolbar .search::after {
+  content: ""; position: absolute; left: 23px; top: 55%; width: 2px; height: 7px; background: var(--muted); transform: rotate(-45deg);
+}
+input[type="text"], input[type="search"], input[type="number"], input[type="date"], select, textarea {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 10px; min-height: 40px; width: 100%;
+}
+input:focus, select:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.toolbar select { width: auto; min-width: 0; flex: 0 1 auto; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { background: none; border: 0; padding: 0 12px; min-height: 38px; color: var(--text-2); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-contrast); }
+.btn {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0 14px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
+.btn.danger.solid { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn.small { min-height: 32px; padding: 0 10px; font-size: 13px; }
+.list-summary { color: var(--text-2); font-size: 13px; margin: 0 0 10px; }
+
+/* ===== テーブル表示 ===== */
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; vertical-align: middle; }
+.tbl th { background: var(--surface-2); color: var(--text-2); font-weight: 600; font-size: 12px; position: sticky; top: 0; user-select: none; }
+.tbl th[data-sort] { cursor: pointer; }
+.tbl th[data-sort]:hover { color: var(--accent); }
+.tbl th .arrow { color: var(--accent); margin-left: 2px; }
+.tbl td.r, .tbl th.r { text-align: right; }
+.tbl tbody tr { cursor: pointer; }
+.tbl tbody tr:hover { background: color-mix(in srgb, var(--gold) 9%, transparent); }
+.tbl tbody tr:last-child td { border-bottom: 0; }
+.tbl .name-cell { white-space: normal; min-width: 180px; }
+.tbl .name-cell strong { font-family: var(--serif); font-size: 15px; }
+.tbl .name-cell div { color: var(--muted); font-size: 12px; }
+.thumb {
+  width: 44px; height: 44px; border-radius: 6px; object-fit: cover; display: block;
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.thumb-btn { padding: 0; border: 0; background: none; position: relative; display: block; }
+.thumb-btn .cnt {
+  position: absolute; right: -4px; bottom: -4px; background: var(--brand); color: var(--brand-text);
+  font-size: 10px; border-radius: 999px; padding: 0 5px; line-height: 16px;
+}
+.no-photo { width: 44px; height: 44px; border-radius: 6px; background: var(--surface-2); display: grid; place-items: center; color: var(--muted); }
+.stars { color: var(--gold); letter-spacing: 1px; white-space: nowrap; }
+.stars .off { color: var(--border); }
+.badge {
+  display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border);
+  color: var(--text-2); background: var(--surface); white-space: nowrap;
+}
+.badge.st-未開栓 { border-color: var(--gold); color: var(--accent); }
+.badge.st-開栓済み { background: color-mix(in srgb, var(--gold) 22%, var(--surface)); border-color: transparent; color: var(--text); }
+.badge.st-飲み切り { color: var(--muted); }
+.badge.sample { border-style: dashed; color: var(--muted); }
+
+/* ===== カード表示 ===== */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.card:hover { transform: translateY(-2px); }
+.card-photo { position: relative; aspect-ratio: 3 / 4; background: var(--surface-2); border: 0; padding: 0; display: block; width: 100%; }
+.card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-photo .ph { width: 100%; height: 100%; display: grid; place-items: center; color: var(--muted); }
+.card-photo .overlay { position: absolute; left: 8px; top: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+.card-photo .cnt {
+  position: absolute; right: 8px; bottom: 8px; background: rgba(20, 12, 8, .72); color: #f1e6d4;
+  font-size: 11px; border-radius: 999px; padding: 1px 8px;
+}
+.card-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.card-no { font-size: 11px; color: var(--muted); letter-spacing: .05em; }
+.card h3 { font-size: 16px; line-height: 1.35; }
+.card-sub { font-size: 12px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 6px; }
+.card-foot .price { font-weight: 600; }
+
+.empty {
+  text-align: center; padding: 48px 16px; color: var(--text-2); background: var(--surface);
+  border: 1px dashed var(--border); border-radius: var(--radius);
+}
+.empty h2 { font-size: 20px; color: var(--text); margin-bottom: 8px; }
+.empty .actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+
+/* ===== ダイアログ共通 ===== */
+dialog {
+  border: 1px solid var(--border); border-radius: 16px; padding: 0; background: var(--surface); color: var(--text);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .35); max-width: min(760px, calc(100vw - 24px)); width: 100%;
+}
+dialog::backdrop { background: rgba(15, 10, 7, .6); backdrop-filter: blur(2px); }
+.dlg-head {
+  display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--surface); z-index: 2;
+}
+.dlg-head h2 { font-size: 19px; margin-right: auto; }
+.dlg-body { padding: 16px 18px; }
+.dlg-foot {
+  display: flex; gap: 8px; justify-content: flex-end; padding: 12px 18px; border-top: 1px solid var(--border);
+  position: sticky; bottom: 0; background: var(--surface); flex-wrap: wrap;
+}
+.dlg-foot .spacer { margin-right: auto; }
+.icon-btn { background: none; border: 0; width: 38px; height: 38px; border-radius: 50%; color: var(--text-2); font-size: 20px; line-height: 1; }
+.icon-btn:hover { background: var(--surface-2); }
+
+/* ===== 入力フォーム ===== */
+#editDialog { max-height: 94vh; }
+#editDialog form { display: flex; flex-direction: column; max-height: calc(94vh - 2px); }
+#editDialog .dlg-body { overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+fieldset { border: 0; padding: 0; margin: 0 0 18px; }
+legend {
+  font-family: var(--serif); font-weight: 600; color: var(--accent); font-size: 14px; padding: 0;
+  margin-bottom: 8px; width: 100%; border-bottom: 1px solid var(--border); letter-spacing: .08em;
+}
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px; }
+.grid .full { grid-column: 1 / -1; }
+.field label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 3px; }
+.field label .req { color: var(--danger); margin-left: 2px; }
+.field .calc {
+  min-height: 40px; display: flex; align-items: center; padding: 0 10px; border-radius: 8px;
+  background: var(--surface-2); color: var(--text-2);
+}
+.with-unit { position: relative; }
+.with-unit input { padding-right: 46px; }
+.with-unit span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; pointer-events: none; }
+textarea { min-height: 90px; resize: vertical; }
+.rating-input { display: flex; align-items: center; gap: 2px; }
+.rating-input button { background: none; border: 0; font-size: 28px; line-height: 1; padding: 2px 3px; color: var(--border); }
+.rating-input button.on { color: var(--gold); }
+.rating-input .rating-text { margin-left: 8px; font-size: 13px; color: var(--text-2); }
+.error-msg { color: var(--danger); font-size: 12px; margin-top: 3px; }
+.meta-line { font-size: 12px; color: var(--muted); }
+
+/* 写真スロット */
+.photo-area { border: 2px dashed var(--border); border-radius: var(--radius); padding: 12px; transition: background .15s; }
+.photo-area.drag { background: color-mix(in srgb, var(--gold) 14%, transparent); border-color: var(--gold); }
+.photo-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.slot { display: flex; flex-direction: column; gap: 4px; }
+.slot-label { font-size: 12px; color: var(--text-2); text-align: center; }
+.slot-box { aspect-ratio: 3 / 4; border-radius: 10px; overflow: hidden; background: var(--surface-2); position: relative; border: 1px solid var(--border); }
+.slot-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.slot-tools { display: flex; justify-content: center; gap: 4px; }
+.slot-tools button {
+  width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); font-size: 14px;
+}
+.slot-tools button:disabled { opacity: .35; cursor: default; }
+.slot-tools .del { color: var(--danger); }
+.slot-add { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 8px; text-align: center; }
+.slot-add .btn { width: 100%; font-size: 13px; min-height: 36px; padding: 0 6px; }
+.slot-add small { color: var(--muted); font-size: 11px; line-height: 1.3; }
+.slot-busy { height: 100%; display: grid; place-items: center; color: var(--muted); font-size: 13px; }
+.photo-hint { font-size: 12px; color: var(--muted); margin-top: 8px; text-align: center; }
+
+/* ===== 写真ビューア ===== */
+#viewerDialog { max-width: min(980px, calc(100vw - 16px)); background: #0e0906; color: #f1e6d4; border-color: #3a2c20; }
+#viewerDialog .dlg-head { background: #0e0906; border-color: #3a2c20; }
+#viewerDialog .icon-btn { color: #f1e6d4; }
+#viewerDialog .icon-btn:hover { background: rgba(255, 255, 255, .1); }
+.viewer-stage { position: relative; display: grid; place-items: center; height: min(76vh, 820px); background: #0e0906; touch-action: pan-y; }
+.viewer-stage img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; user-select: none; }
+.viewer-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); width: 46px; height: 46px; border-radius: 50%;
+  background: rgba(0, 0, 0, .5); color: #fff; border: 1px solid rgba(255, 255, 255, .25); font-size: 22px;
+}
+.viewer-nav.prev { left: 10px; } .viewer-nav.next { right: 10px; }
+.viewer-nav:disabled { opacity: .25; cursor: default; }
+.viewer-caption { padding: 10px 18px 14px; font-size: 13px; color: #c9b69b; text-align: center; }
+
+/* ===== 確認ダイアログ ===== */
+#askDialog { max-width: min(440px, calc(100vw - 24px)); }
+#askDialog .dlg-body { white-space: pre-line; }
+
+/* ===== 集計ダッシュボード ===== */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+.kpi .label { font-size: 12px; color: var(--text-2); letter-spacing: .06em; }
+.kpi .value { font-family: var(--serif); font-size: 28px; font-weight: 600; line-height: 1.25; color: var(--text); }
+.kpi .value small { font-size: 14px; color: var(--text-2); margin-left: 2px; font-family: var(--sans); font-weight: 400; }
+.kpi .sub { font-size: 12px; color: var(--muted); }
+.panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px 16px; box-shadow: var(--shadow); min-width: 0; }
+.panel.wide { grid-column: 1 / -1; }
+.panel h2 { font-size: 16px; margin-bottom: 2px; }
+.panel .desc { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.chart { width: 100%; }
+.chart svg { display: block; overflow: visible; }
+.chart text { fill: var(--text-2); font-size: 12px; font-family: var(--sans); }
+.chart .val { fill: var(--text); font-variant-numeric: tabular-nums; }
+.chart .axis { fill: var(--muted); font-size: 11px; }
+.chart .grid-line { stroke: var(--grid); stroke-width: 1; }
+.chart .base-line { stroke: var(--border); stroke-width: 1; }
+.chart .bar { fill: var(--bar); }
+.chart .hit { fill: transparent; }
+.chart g.row:hover .bar { fill: var(--accent); }
+.chart g.row:hover .hit { fill: color-mix(in srgb, var(--gold) 10%, transparent); }
+.chart-empty { color: var(--muted); font-size: 13px; padding: 24px 0; text-align: center; }
+.mini-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+.mini-table th, .mini-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); text-align: right; }
+.mini-table th:first-child, .mini-table td:first-child { text-align: left; }
+.mini-table th { color: var(--text-2); font-weight: 600; font-size: 12px; }
+
+/* ===== トースト ===== */
+#toast {
+  position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px);
+  background: var(--brand); color: var(--brand-text); padding: 10px 18px; border-radius: 999px;
+  box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: all .25s ease; z-index: 100;
+  max-width: calc(100vw - 32px); font-size: 14px;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== スマートフォン ===== */
+@media (max-width: 720px) {
+  .app-title { font-size: 17px; }
+  .app-title small { display: none; }
+  .hbtn .lbl { display: none; }
+  .panels { grid-template-columns: minmax(0, 1fr); }
+  .grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid .half-sm { grid-column: 1 / -1; }
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .card h3 { font-size: 14px; }
+  main { padding: 12px; }
+  .toolbar select { flex: 1 1 30%; }
+  .toolbar .search { flex-basis: 100%; }
+  dialog#editDialog {
+    max-width: 100vw; max-height: 100dvh; height: 100dvh; margin: 0; border-radius: 0; border: 0;
+  }
+  #editDialog form { max-height: 100dvh; height: 100%; }
+  #editDialog .dlg-body { flex: 1; }
+  .kpi .value { font-size: 23px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== ヘッダー ===== -->
+<header class="app-header">
+  <h1 class="app-title">
+    <svg width="22" height="22" viewBox="0 0 64 64" aria-hidden="true"><path d="M27 6h10v13c0 3 8 6 8 15v22c0 2-1 3-3 3H22c-2 0-3-1-3-3V34c0-9 8-12 8-15z" fill="currentColor"/></svg>
+    お酒コレクション <small>MY BOTTLE LOG</small>
+  </h1>
+  <button class="hbtn primary" id="addBtn" type="button">＋<span class="lbl">新規追加</span></button>
+  <button class="hbtn" id="themeBtn" type="button" title="ライト／ダーク切替" aria-label="ライト／ダーク切替">☀</button>
+  <div class="menu-wrap">
+    <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false" title="メニュー" aria-label="メニュー">⚙</button>
+    <div class="menu" id="menu" hidden>
+      <div class="menu-label">バックアップ</div>
+      <button type="button" data-action="export-json">JSONエクスポート（写真含む）</button>
+      <button type="button" data-action="import-json">JSONインポート</button>
+      <button type="button" data-action="export-csv">CSVエクスポート（写真なし）</button>
+      <hr>
+      <div class="menu-label">サンプルデータ</div>
+      <button type="button" data-action="add-samples">サンプルデータを投入（5件）</button>
+      <button type="button" data-action="delete-samples">サンプルのみ削除</button>
+      <hr>
+      <button type="button" data-action="delete-all" class="danger">全データを削除</button>
+    </div>
+  </div>
+  <input type="file" id="importFile" accept="application/json,.json" hidden>
+</header>
+
+<!-- ===== タブ ===== -->
+<nav class="tabs" role="tablist">
+  <button class="tab" role="tab" data-tab="list" aria-selected="true">一覧</button>
+  <button class="tab" role="tab" data-tab="stats" aria-selected="false">集計</button>
+</nav>
+
+<main>
+  <!-- 一覧タブ -->
+  <section id="listTab">
+    <div class="toolbar">
+      <div class="search"><input type="search" id="q" placeholder="銘柄名・ブランド・メモで検索" aria-label="キーワード検索"></div>
+      <select id="fCategory" aria-label="種別で絞り込み"></select>
+      <select id="fCountry" aria-label="原産国で絞り込み"></select>
+      <select id="fStatus" aria-label="状態で絞り込み"></select>
+      <select id="sortSel" aria-label="並べ替え"></select>
+      <div class="seg" role="group" aria-label="表示切替">
+        <button type="button" data-view="table" aria-pressed="false" title="テーブル表示">☰ 表</button>
+        <button type="button" data-view="card" aria-pressed="false" title="カード表示">▦ カード</button>
+      </div>
+    </div>
+    <p class="list-summary" id="listSummary"></p>
+    <div id="listArea"></div>
+  </section>
+
+  <!-- 集計タブ -->
+  <section id="statsTab" hidden>
+    <div class="kpis" id="kpis"></div>
+    <div class="panels">
+      <div class="panel wide">
+        <h2>月別の購入金額</h2>
+        <p class="desc">直近12か月（THB）。棒にカーソルを合わせると詳細を表示します。</p>
+        <div class="chart" id="chartMonthly"></div>
+      </div>
+      <div class="panel">
+        <h2>種別ごとの本数</h2>
+        <p class="desc">本数の多い順</p>
+        <div class="chart" id="chartCatCount"></div>
+      </div>
+      <div class="panel">
+        <h2>種別ごとの金額</h2>
+        <p class="desc">合計金額（THB）の多い順</p>
+        <div class="chart" id="chartCatAmount"></div>
+      </div>
+      <div class="panel">
+        <h2>原産国ごとの本数</h2>
+        <p class="desc">上位10か国（それ以外は「その他」に集約）</p>
+        <div class="chart" id="chartCountry"></div>
+      </div>
+      <div class="panel">
+        <h2>種別ごとの集計表</h2>
+        <p class="desc">本数・合計金額・平均単価</p>
+        <div id="catTable"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ===== 追加・編集ダイアログ ===== -->
+<dialog id="editDialog" aria-labelledby="editTitle">
+  <form id="editForm" novalidate>
+    <div class="dlg-head">
+      <h2 id="editTitle">新規追加</h2>
+      <button type="button" class="icon-btn" data-close aria-label="閉じる">×</button>
+    </div>
+    <div class="dlg-body">
+      <fieldset>
+        <legend>基本情報</legend>
+        <div class="grid">
+          <div class="field"><label>No.</label><div class="calc num" id="fNo">—</div></div>
+          <div class="field"><label>週番号（自動）</label><div class="calc" id="fWeek">—</div></div>
+          <div class="field"><label for="fDate">購入日<span class="req">*</span></label><input type="date" id="fDate" required></div>
+          <div class="field"><label for="fStatusIn">状態</label><select id="fStatusIn"></select></div>
+          <div class="field full"><label for="fName">銘柄名<span class="req">*</span></label><input type="text" id="fName" required autocomplete="off"><div class="error-msg" id="nameErr" hidden>銘柄名を入力してください</div></div>
+          <div class="field full"><label for="fBrand">ブランド／蒸留所・醸造所</label><input type="text" id="fBrand" list="dlBrand" autocomplete="off"></div>
+          <div class="field"><label for="fCat">種別</label><select id="fCat"></select></div>
+          <div class="field"><label for="fSub">サブ種別</label><input type="text" id="fSub" list="dlSub" placeholder="例：シングルモルト" autocomplete="off"></div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>詳細</legend>
+        <div class="grid">
+          <div class="field"><label for="fCountryIn">原産国</label><input type="text" id="fCountryIn" list="dlCountry" autocomplete="off"></div>
+          <div class="field"><label for="fRegion">産地・地域</label><input type="text" id="fRegion" autocomplete="off"></div>
+          <div class="field"><label for="fVol">内容量</label><div class="with-unit"><input type="number" id="fVol" min="0" step="1" inputmode="numeric"><span>ml</span></div></div>
+          <div class="field"><label for="fAbv">アルコール度数</label><div class="with-unit"><input type="number" id="fAbv" min="0" max="100" step="0.1" inputmode="decimal"><span>%</span></div></div>
+          <div class="field"><label for="fPrice">購入金額</label><div class="with-unit"><input type="text" id="fPrice" inputmode="decimal" autocomplete="off"><span>THB</span></div></div>
+          <div class="field"><label>100mlあたり単価（自動）</label><div class="calc num" id="fUnit">—</div></div>
+          <div class="field full"><label for="fShop">購入店</label><input type="text" id="fShop" list="dlShop" autocomplete="off"></div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>評価・メモ</legend>
+        <div class="field">
+          <label>評価</label>
+          <div class="rating-input" id="ratingInput"></div>
+        </div>
+        <div class="field" style="margin-top:10px"><label for="fMemo">メモ</label><textarea id="fMemo" rows="4"></textarea></div>
+      </fieldset>
+      <fieldset>
+        <legend>写真（最大3枚）</legend>
+        <div class="photo-area" id="photoArea">
+          <div class="photo-slots" id="photoSlots"></div>
+          <div class="photo-hint">ここに画像をドラッグ＆ドロップしても追加できます。◀ ▶ で並べ替え（1枚目が一覧のサムネイルになります）。</div>
+        </div>
+        <input type="file" id="fileCamera" accept="image/*" capture="environment" hidden>
+        <input type="file" id="filePick" accept="image/*" multiple hidden>
+      </fieldset>
+      <p class="meta-line" id="metaLine"></p>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn danger spacer" id="deleteBtn">削除</button>
+      <button type="button" class="btn" data-close>キャンセル</button>
+      <button type="submit" class="btn primary" id="saveBtn">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ===== 写真ビューア ===== -->
+<dialog id="viewerDialog" aria-labelledby="viewerTitle">
+  <div class="dlg-head">
+    <h2 id="viewerTitle"></h2>
+    <button type="button" class="icon-btn" data-close aria-label="閉じる">×</button>
+  </div>
+  <div class="viewer-stage" id="viewerStage">
+    <img id="viewerImg" alt="">
+    <button type="button" class="viewer-nav prev" id="viewerPrev" aria-label="前の写真">‹</button>
+    <button type="button" class="viewer-nav next" id="viewerNext" aria-label="次の写真">›</button>
+  </div>
+  <div class="viewer-caption" id="viewerCaption"></div>
+</dialog>
+
+<!-- ===== 確認ダイアログ ===== -->
+<dialog id="askDialog" aria-labelledby="askTitle">
+  <form method="dialog">
+    <div class="dlg-head"><h2 id="askTitle"></h2></div>
+    <div class="dlg-body" id="askMessage"></div>
+    <div class="dlg-foot" id="askButtons"></div>
+  </form>
+</dialog>
+
+<datalist id="dlCountry"></datalist>
+<datalist id="dlBrand"></datalist>
+<datalist id="dlSub"></datalist>
+<datalist id="dlShop"></datalist>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+
+/* =========================================================
+   定数
+   ========================================================= */
+const CATEGORIES = ['ウイスキー', '日本酒', '焼酎', 'ワイン', 'ビール', 'ラム', 'ジン', 'ウォッカ', 'テキーラ', 'ブランデー', 'リキュール', 'その他'];
+const STATUSES = ['未開栓', '開栓済み', '飲み切り'];
+const PHOTO_LABELS = ['ボトル正面', 'ラベル裏', 'その他'];
+const MAX_PHOTOS = 3;
+const PHOTO_MAX_SIDE = 1200;   // 保存用：長辺px
+const PHOTO_QUALITY = 0.8;     // 保存用：JPEG品質
+const THUMB_MAX_SIDE = 480;    // サムネイル：長辺px
+const THUMB_QUALITY = 0.75;
+const DEFAULT_COUNTRIES = ['日本', 'スコットランド', 'アイルランド', 'アメリカ', 'カナダ', 'イギリス', 'フランス', 'イタリア', 'スペイン', 'ポルトガル', 'ドイツ', 'オランダ', 'ベルギー', 'メキシコ', 'キューバ', 'ジャマイカ', 'タイ', '台湾', '韓国', '中国', 'インド', 'オーストラリア', 'ニュージーランド', 'チリ', 'アルゼンチン', '南アフリカ', 'ロシア', 'ポーランド'];
+const SORT_OPTIONS = [
+  ['purchaseDate:desc', '購入日（新しい順）'],
+  ['purchaseDate:asc', '購入日（古い順）'],
+  ['no:desc', 'No.（大きい順）'],
+  ['no:asc', 'No.（小さい順）'],
+  ['priceTHB:desc', '金額（高い順）'],
+  ['priceTHB:asc', '金額（安い順）'],
+  ['unitPrice:desc', '100ml単価（高い順）'],
+  ['rating:desc', '評価（高い順）'],
+  ['abv:desc', '度数（高い順）'],
+  ['name:asc', '銘柄名（五十音順）'],
+];
+const LS_THEME = 'sakeCollection.theme';
+const LS_VIEW = 'sakeCollection.view';
+
+/* =========================================================
+   小さなユーティリティ
+   ========================================================= */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const pad2 = (n) => String(n).padStart(2, '0');
+
+// HTMLエスケープ（ユーザー入力を画面に出すときは必ず通す）
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// 今日の日付（ローカル時刻）を YYYY-MM-DD で返す
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+// 日付文字列をずらす（サンプル生成用）
+function addDays(ymd, days) {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + days);
+  return `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}-${pad2(dt.getDate())}`;
+}
+// YYYY-MM-DD を UTC ミリ秒に（タイムゾーンの影響を受けずに日数差を出すため）
+function ymdToUTC(ymd) {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return Date.UTC(y, m - 1, d);
+}
+const isValidYMD = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+
+// 数値の整形（3桁区切り）
+const fmtNum = (n, maxFrac = 0) => Number(n).toLocaleString('ja-JP', { maximumFractionDigits: maxFrac });
+const fmtTHB = (n) => (n == null || Number.isNaN(n)) ? '—' : `฿${fmtNum(n, 2)}`;
+const fmtUnit = (n) => (n == null) ? '—' : `฿${fmtNum(n, 1)}`;
+// 数値入力のパース（空欄は null、カンマは除去）
+function parseNum(v) {
+  if (v == null) return null;
+  const s = String(v).replace(/[,，\s]/g, '');
+  if (s === '') return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+
+// 100mlあたり単価
+function unitPrice(b) {
+  return (b.priceTHB != null && b.volumeMl > 0) ? (b.priceTHB / b.volumeMl) * 100 : null;
+}
+
+// 星表示（★☆）
+function starsHTML(r) {
+  r = r || 0;
+  if (!r) return '<span class="stars" title="未評価"><span class="off">☆☆☆☆☆</span></span>';
+  return `<span class="stars" title="評価 ${r}">${'★'.repeat(r)}<span class="off">${'★'.repeat(5 - r)}</span></span>`;
+}
+
+// 表示用 No.（サンプルは S1, S2… と別系統）
+const displayNo = (b) => b.isSample ? `S${b.sampleNo}` : String(b.no);
+
+// トースト通知
+let toastTimer = null;
+function toast(msg) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+// ファイルとしてダウンロードさせる
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+/* =========================================================
+   IndexedDB ラッパー
+   - bottles : お酒の記録（写真は photoIds で参照）
+   - photos  : 写真本体（blob）とサムネイル（thumb）
+   - meta    : 採番カウンタなど（key: 'lastNo'）
+   ========================================================= */
+const DB_NAME = 'sakeCollectionDB';
+const DB_VERSION = 1;
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const d = req.result;
+      if (!d.objectStoreNames.contains('bottles')) d.createObjectStore('bottles', { keyPath: 'id', autoIncrement: true });
+      if (!d.objectStoreNames.contains('photos')) d.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+      if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta', { keyPath: 'key' });
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// IDBRequest を Promise 化
+const rq = (req) => new Promise((resolve, reject) => {
+  req.onsuccess = () => resolve(req.result);
+  req.onerror = () => reject(req.error);
+});
+
+// 1つのトランザクション内で処理を実行し、完了（コミット）後に結果を返す
+// ※ body 内では IDB 以外の非同期処理（画像変換など）を await しないこと
+function txRun(storeNames, mode, body) {
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(storeNames, mode);
+    const stores = {};
+    storeNames.forEach((n) => { stores[n] = t.objectStore(n); });
+    let result;
+    t.oncomplete = () => resolve(result);
+    t.onerror = () => reject(t.error);
+    t.onabort = () => reject(t.error || new Error('トランザクションが中断されました'));
+    Promise.resolve().then(() => body(stores)).then((r) => { result = r; }).catch((e) => {
+      try { t.abort(); } catch (_) { /* 既に終了 */ }
+      reject(e);
+    });
+  });
+}
+const idbGetAll = (store) => txRun([store], 'readonly', (s) => rq(s[store].getAll()));
+const idbGet = (store, key) => txRun([store], 'readonly', (s) => rq(s[store].get(key)));
+
+/* =========================================================
+   アプリの状態
+   ========================================================= */
+const state = {
+  bottles: [],          // 全レコード（写真本体は含まない）
+  lastNo: 0,            // 実データの採番カウンタ（削除しても戻さない）
+  tab: 'list',
+  view: 'table',        // 'table' | 'card'
+  q: '', fCategory: '', fCountry: '', fStatus: '',
+  sortKey: 'purchaseDate', sortDir: 'desc',
+};
+
+// サムネイルの objectURL キャッシュ（photoId → URL）
+const thumbCache = new Map();
+function clearThumbCache() {
+  thumbCache.forEach((url) => URL.revokeObjectURL(url));
+  thumbCache.clear();
+}
+
+// DBから全データを読み直して再描画
+async function reload() {
+  state.bottles = await idbGetAll('bottles');
+  const meta = await idbGet('meta', 'lastNo');
+  const maxNo = state.bottles.filter((b) => !b.isSample).reduce((m, b) => Math.max(m, b.no || 0), 0);
+  state.lastNo = Math.max(meta ? meta.value : 0, maxNo);
+  renderAll();
+}
+
+/* =========================================================
+   週番号（コレクション開始からの第n週）
+   起点：実データ中で最も古い購入日（実データが無ければサンプルを含めて判定）
+   ========================================================= */
+// extra：入力中のレコード（{ purchaseDate, isSample }）も起点の候補に含める場合に指定
+function weekBaseDate(list = state.bottles, extra = null) {
+  const items = list.filter((b) => isValidYMD(b.purchaseDate)).map((b) => ({ d: b.purchaseDate, sample: !!b.isSample }));
+  if (extra && isValidYMD(extra.purchaseDate)) items.push({ d: extra.purchaseDate, sample: !!extra.isSample });
+  const real = items.filter((i) => !i.sample);
+  const src = real.length ? real : items;
+  return src.reduce((min, i) => (!min || i.d < min) ? i.d : min, null);
+}
+function weekNumber(dateStr, base) {
+  if (!isValidYMD(dateStr) || !isValidYMD(base)) return null;
+  const days = Math.round((ymdToUTC(dateStr) - ymdToUTC(base)) / 86400000);
+  return Math.floor(days / 7) + 1;
+}
+const weekLabel = (n) => (n != null && n >= 1) ? `第${n}週` : '—';
+
+/* =========================================================
+   画像処理（Canvas でリサイズ＋JPEG圧縮）
+   ========================================================= */
+async function loadImage(blob) {
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    return img;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+function canvasToBlob(canvas, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((b) => b ? resolve(b) : reject(new Error('画像の変換に失敗しました')), 'image/jpeg', quality);
+  });
+}
+// 画像（img または canvas）を長辺 maxSide 以内に縮小して JPEG Blob にする
+function resizeToBlob(source, maxSide, quality) {
+  const w = source.naturalWidth || source.width;
+  const h = source.naturalHeight || source.height;
+  const scale = Math.min(1, maxSide / Math.max(w, h));
+  const cw = Math.max(1, Math.round(w * scale));
+  const ch = Math.max(1, Math.round(h * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = cw; canvas.height = ch;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';                 // 透過PNG対策で白背景
+  ctx.fillRect(0, 0, cw, ch);
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(source, 0, 0, cw, ch);
+  return canvasToBlob(canvas, quality);
+}
+// アップロードされたファイル → 保存用 blob とサムネイル
+async function processImage(fileOrBlob) {
+  const img = await loadImage(fileOrBlob);
+  const blob = await resizeToBlob(img, PHOTO_MAX_SIDE, PHOTO_QUALITY);
+  const thumb = await resizeToBlob(img, THUMB_MAX_SIDE, THUMB_QUALITY);
+  return { blob, thumb };
+}
+function blobToDataURL(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+// data URL → Blob（file:// でも動くよう fetch を使わずに変換）
+function dataURLToBlob(dataUrl) {
+  const m = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(dataUrl || '');
+  if (!m) throw new Error('画像データの形式が不正です');
+  const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: m[1] || 'image/jpeg' });
+}
+
+/* =========================================================
+   一覧：絞り込み・並べ替え
+   ========================================================= */
+const SORT_VALUE = {
+  no: (b) => b.isSample ? 1e9 + (b.sampleNo || 0) : b.no,
+  purchaseDate: (b) => b.purchaseDate || null,
+  name: (b) => b.name || null,
+  category: (b) => { const i = CATEGORIES.indexOf(b.category); return i < 0 ? null : i; },
+  country: (b) => b.country || null,
+  abv: (b) => b.abv,
+  volumeMl: (b) => b.volumeMl,
+  priceTHB: (b) => b.priceTHB,
+  unitPrice: (b) => unitPrice(b),
+  status: (b) => STATUSES.indexOf(b.status),
+  rating: (b) => b.rating || null,
+};
+
+function filteredBottles() {
+  const q = state.q.trim().toLowerCase();
+  const list = state.bottles.filter((b) => {
+    if (state.fCategory && b.category !== state.fCategory) return false;
+    if (state.fCountry && (b.country || '') !== state.fCountry) return false;
+    if (state.fStatus && b.status !== state.fStatus) return false;
+    if (q) {
+      const hay = `${b.name || ''}\n${b.brand || ''}\n${b.memo || ''}`.toLowerCase();
+      if (!q.split(/\s+/).every((w) => hay.includes(w))) return false;
+    }
+    return true;
+  });
+  const getter = SORT_VALUE[state.sortKey] || SORT_VALUE.purchaseDate;
+  const dir = state.sortDir === 'asc' ? 1 : -1;
+  list.sort((a, b) => {
+    const va = getter(a), vb = getter(b);
+    const na = va == null || va === '', nb = vb == null || vb === '';
+    if (na && nb) return b.id - a.id;
+    if (na) return 1;          // 空の値は常に末尾
+    if (nb) return -1;
+    let c = (typeof va === 'string') ? va.localeCompare(vb, 'ja') : va - vb;
+    if (c === 0) c = (a.purchaseDate || '').localeCompare(b.purchaseDate || '') || (a.id - b.id);
+    return c * dir;
+  });
+  return list;
+}
+
+/* =========================================================
+   描画：共通
+   ========================================================= */
+function renderAll() {
+  renderFilters();
+  renderDatalists();
+  renderList();
+  if (state.tab === 'stats') renderStats();
+}
+
+// 絞り込みプルダウンの選択肢を更新
+function renderFilters() {
+  const fill = (sel, label, values, current) => {
+    sel.innerHTML = `<option value="">${label}：すべて</option>` +
+      values.map((v) => `<option value="${esc(v)}"${v === current ? ' selected' : ''}>${esc(v)}</option>`).join('');
+  };
+  const cats = CATEGORIES.filter((c) => state.bottles.some((b) => b.category === c));
+  if (state.fCategory && !cats.includes(state.fCategory)) cats.push(state.fCategory);
+  fill($('#fCategory'), '種別', cats, state.fCategory);
+
+  const countryCount = new Map();
+  state.bottles.forEach((b) => { if (b.country) countryCount.set(b.country, (countryCount.get(b.country) || 0) + 1); });
+  const countries = [...countryCount.keys()].sort((a, b) => countryCount.get(b) - countryCount.get(a) || a.localeCompare(b, 'ja'));
+  if (state.fCountry && !countries.includes(state.fCountry)) countries.push(state.fCountry);
+  fill($('#fCountry'), '原産国', countries, state.fCountry);
+
+  fill($('#fStatus'), '状態', STATUSES, state.fStatus);
+
+  const cur = `${state.sortKey}:${state.sortDir}`;
+  const opts = SORT_OPTIONS.slice();
+  if (!opts.some(([v]) => v === cur)) opts.push([cur, '（表の見出しで指定）']);
+  $('#sortSel').innerHTML = opts.map(([v, l]) => `<option value="${v}"${v === cur ? ' selected' : ''}>${l}</option>`).join('');
+
+  $$('.seg [data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === state.view)));
+}
+
+// 入力候補（datalist）：過去の入力値を優先して表示
+function renderDatalists() {
+  const uniq = (key) => {
+    const count = new Map();
+    state.bottles.forEach((b) => { const v = (b[key] || '').trim(); if (v) count.set(v, (count.get(v) || 0) + 1); });
+    return [...count.keys()].sort((a, b) => count.get(b) - count.get(a));
+  };
+  const toOpts = (arr) => arr.map((v) => `<option value="${esc(v)}"></option>`).join('');
+  const pastCountries = uniq('country');
+  $('#dlCountry').innerHTML = toOpts([...pastCountries, ...DEFAULT_COUNTRIES.filter((c) => !pastCountries.includes(c))]);
+  $('#dlBrand').innerHTML = toOpts(uniq('brand'));
+  $('#dlSub').innerHTML = toOpts(uniq('subCategory'));
+  $('#dlShop').innerHTML = toOpts(uniq('shop'));
+}
+
+/* =========================================================
+   描画：一覧
+   ========================================================= */
+const BOTTLE_ICON = '<svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true"><path d="M27 6h10v13c0 3 8 6 8 15v22c0 2-1 3-3 3H22c-2 0-3-1-3-3V34c0-9 8-12 8-15z" fill="none" stroke="currentColor" stroke-width="3"/></svg>';
+
+function renderList() {
+  const area = $('#listArea');
+  const all = state.bottles.length;
+  const sampleCount = state.bottles.filter((b) => b.isSample).length;
+  const list = filteredBottles();
+
+  if (all === 0) {
+    $('#listSummary').textContent = '';
+    area.innerHTML = `
+      <div class="empty">
+        <h2>まだ記録がありません</h2>
+        <p>「＋新規追加」から1本目を登録しましょう。<br>動作を試したいときはサンプルデータを投入できます。</p>
+        <div class="actions">
+          <button type="button" class="btn primary" data-empty="add">＋ 新規追加</button>
+          <button type="button" class="btn" data-empty="samples">サンプルデータを投入</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const total = list.reduce((s, b) => s + (b.priceTHB || 0), 0);
+  $('#listSummary').textContent =
+    `全${all}本${sampleCount ? `（うちサンプル${sampleCount}本）` : ''}中 ${list.length}本を表示 ・ 表示中の合計 ${fmtTHB(total)}`;
+
+  if (list.length === 0) {
+    area.innerHTML = '<div class="empty"><h2>該当する記録がありません</h2><p>検索語や絞り込み条件を変えてみてください。</p></div>';
+    return;
+  }
+
+  const base = weekBaseDate();
+  area.innerHTML = state.view === 'table' ? tableHTML(list, base) : cardsHTML(list, base);
+  hydrateThumbs(area);
+}
+
+function tableHTML(list, base) {
+  const th = (key, label, cls = '') => {
+    const arrow = state.sortKey === key ? `<span class="arrow">${state.sortDir === 'asc' ? '▲' : '▼'}</span>` : '';
+    return `<th data-sort="${key}" class="${cls}" aria-sort="${state.sortKey === key ? (state.sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}">${label}${arrow}</th>`;
+  };
+  const rows = list.map((b) => {
+    const n = b.photoIds?.length || 0;
+    const photo = n
+      ? `<button type="button" class="thumb-btn" data-viewer="${b.id}" aria-label="写真を拡大"><img class="thumb" data-photo="${b.photoIds[0]}" alt="">${n > 1 ? `<span class="cnt">${n}</span>` : ''}</button>`
+      : `<div class="no-photo">${BOTTLE_ICON}</div>`;
+    return `<tr data-id="${b.id}">
+      <td>${photo}</td>
+      <td class="num">${esc(displayNo(b))}${b.isSample ? ' <span class="badge sample">サンプル</span>' : ''}</td>
+      <td class="num">${esc(b.purchaseDate || '')}</td>
+      <td>${weekLabel(weekNumber(b.purchaseDate, base))}</td>
+      <td class="name-cell"><strong>${esc(b.name)}</strong>${b.brand ? `<div>${esc(b.brand)}</div>` : ''}</td>
+      <td>${esc(b.category || '')}${b.subCategory ? `<div class="meta-line">${esc(b.subCategory)}</div>` : ''}</td>
+      <td>${esc(b.country || '')}${b.region ? `<div class="meta-line">${esc(b.region)}</div>` : ''}</td>
+      <td class="r num">${b.volumeMl != null ? fmtNum(b.volumeMl) + 'ml' : '—'}</td>
+      <td class="r num">${b.abv != null ? fmtNum(b.abv, 1) + '%' : '—'}</td>
+      <td class="r num">${fmtTHB(b.priceTHB)}</td>
+      <td class="r num">${fmtUnit(unitPrice(b))}</td>
+      <td><span class="badge st-${esc(b.status)}">${esc(b.status)}</span></td>
+      <td>${starsHTML(b.rating)}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="table-wrap"><table class="tbl">
+    <thead><tr>
+      <th>写真</th>${th('no', 'No.')}${th('purchaseDate', '購入日')}${th('purchaseDate', '週')}${th('name', '銘柄名')}
+      ${th('category', '種別')}${th('country', '原産国')}${th('volumeMl', '容量', 'r')}${th('abv', '度数', 'r')}
+      ${th('priceTHB', '金額', 'r')}${th('unitPrice', '100ml単価', 'r')}${th('status', '状態')}${th('rating', '評価')}
+    </tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
+}
+
+function cardsHTML(list, base) {
+  return `<div class="cards">${list.map((b) => {
+    const n = b.photoIds?.length || 0;
+    const photo = n
+      ? `<button type="button" class="card-photo" data-viewer="${b.id}" aria-label="写真を拡大"><img data-photo="${b.photoIds[0]}" alt="${esc(b.name)}">`
+      : `<div class="card-photo"><div class="ph">${BOTTLE_ICON}</div>`;
+    const endTag = n ? '</button>' : '</div>';
+    return `<article class="card" data-id="${b.id}">
+      ${photo}
+        <div class="overlay"><span class="badge st-${esc(b.status)}">${esc(b.status)}</span>${b.isSample ? '<span class="badge sample">サンプル</span>' : ''}</div>
+        ${n > 1 ? `<span class="cnt">📷 ${n}</span>` : ''}
+      ${endTag}
+      <div class="card-body">
+        <div class="card-no">No.${esc(displayNo(b))} ・ ${weekLabel(weekNumber(b.purchaseDate, base))} ・ ${esc(b.purchaseDate || '')}</div>
+        <h3>${esc(b.name)}</h3>
+        <div class="card-sub">${esc([b.brand, b.category, b.country].filter(Boolean).join(' ・ '))}</div>
+        <div class="card-foot">${starsHTML(b.rating)}<span class="price num">${fmtTHB(b.priceTHB)}</span></div>
+      </div>
+    </article>`;
+  }).join('')}</div>`;
+}
+
+// data-photo 属性を持つ img にサムネイルを読み込む
+async function hydrateThumbs(root) {
+  const imgs = $$('img[data-photo]', root);
+  const missing = [...new Set(imgs.map((i) => Number(i.dataset.photo)).filter((id) => !thumbCache.has(id)))];
+  if (missing.length) {
+    await txRun(['photos'], 'readonly', async (s) => {
+      for (const id of missing) {
+        const p = await rq(s.photos.get(id));
+        if (p) thumbCache.set(id, URL.createObjectURL(p.thumb || p.blob));
+      }
+    });
+  }
+  imgs.forEach((img) => {
+    const url = thumbCache.get(Number(img.dataset.photo));
+    if (url) img.src = url;
+  });
+}
+
+/* =========================================================
+   写真ビューア（拡大表示・左右切替）
+   ========================================================= */
+const viewer = { bottle: null, idx: 0, url: null };
+
+async function openViewer(bottleId, idx = 0) {
+  const b = state.bottles.find((x) => x.id === bottleId);
+  if (!b || !b.photoIds?.length) return;
+  viewer.bottle = b;
+  viewer.idx = idx;
+  $('#viewerTitle').textContent = b.name;
+  const dlg = $('#viewerDialog');
+  if (!dlg.open) dlg.showModal();
+  await showViewerPhoto();
+}
+async function showViewerPhoto() {
+  const b = viewer.bottle;
+  const n = b.photoIds.length;
+  const id = b.photoIds[viewer.idx];
+  const p = await idbGet('photos', id);
+  if (viewer.url) URL.revokeObjectURL(viewer.url);
+  viewer.url = p ? URL.createObjectURL(p.blob) : null;
+  const img = $('#viewerImg');
+  img.src = viewer.url || '';
+  img.alt = `${b.name}（${PHOTO_LABELS[viewer.idx]}）`;
+  $('#viewerCaption').textContent = `${PHOTO_LABELS[viewer.idx]} ・ ${viewer.idx + 1} / ${n}`;
+  $('#viewerPrev').disabled = viewer.idx === 0;
+  $('#viewerNext').disabled = viewer.idx >= n - 1;
+  $('#viewerPrev').hidden = $('#viewerNext').hidden = n <= 1;
+}
+function viewerStep(d) {
+  if (!viewer.bottle) return;
+  const next = viewer.idx + d;
+  if (next < 0 || next >= viewer.bottle.photoIds.length) return;
+  viewer.idx = next;
+  showViewerPhoto();
+}
+function setupViewer() {
+  const dlg = $('#viewerDialog');
+  $('#viewerPrev').addEventListener('click', () => viewerStep(-1));
+  $('#viewerNext').addEventListener('click', () => viewerStep(1));
+  dlg.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') viewerStep(-1);
+    if (e.key === 'ArrowRight') viewerStep(1);
+  });
+  // スワイプで切替
+  let sx = null;
+  const stage = $('#viewerStage');
+  stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener('touchend', (e) => {
+    if (sx == null) return;
+    const dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 40) viewerStep(dx < 0 ? 1 : -1);
+    sx = null;
+  });
+  // 背景クリックで閉じる
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener('close', () => {
+    if (viewer.url) URL.revokeObjectURL(viewer.url);
+    viewer.url = null; viewer.bottle = null;
+    $('#viewerImg').removeAttribute('src');
+  });
+}
+
+/* =========================================================
+   汎用の確認ダイアログ
+   buttons: [{ label, value, kind: 'primary' | 'danger' }]
+   戻り値：押したボタンの value（閉じた場合は ''）
+   ========================================================= */
+function ask({ title, message, buttons }) {
+  const dlg = $('#askDialog');
+  $('#askTitle').textContent = title;
+  $('#askMessage').textContent = message;
+  $('#askButtons').innerHTML = buttons.map((b) =>
+    `<button class="btn ${b.kind === 'danger' ? 'danger solid' : b.kind === 'primary' ? 'primary' : ''}" value="${esc(b.value)}">${esc(b.label)}</button>`
+  ).join('');
+  dlg.returnValue = '';
+  dlg.showModal();
+  return new Promise((resolve) => {
+    dlg.addEventListener('close', () => resolve(dlg.returnValue), { once: true });
+  });
+}
+async function confirmDanger(title, message, okLabel = '削除する') {
+  const v = await ask({ title, message, buttons: [{ label: 'キャンセル', value: '' }, { label: okLabel, value: 'ok', kind: 'danger' }] });
+  return v === 'ok';
+}
+
+/* =========================================================
+   追加・編集フォーム
+   ========================================================= */
+const form = {
+  editingId: null,     // 編集中のレコードID（新規は null）
+  rating: 0,
+  photos: [],          // { id: 既存写真ID|null, blob, thumb, url, busy }
+  originalPhotoIds: [],
+};
+
+function setupForm() {
+  $('#fCat').innerHTML = CATEGORIES.map((c) => `<option>${c}</option>`).join('');
+  $('#fStatusIn').innerHTML = STATUSES.map((s) => `<option>${s}</option>`).join('');
+
+  // 評価（★をクリック。同じ星をもう一度押すと未評価に戻す）
+  $('#ratingInput').innerHTML = [1, 2, 3, 4, 5].map((i) => `<button type="button" data-star="${i}" aria-label="${i}つ星">★</button>`).join('') +
+    '<span class="rating-text" id="ratingText"></span>';
+  $('#ratingInput').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-star]');
+    if (!btn) return;
+    const v = Number(btn.dataset.star);
+    form.rating = form.rating === v ? 0 : v;
+    renderRating();
+  });
+
+  // 自動計算の更新
+  $('#fDate').addEventListener('input', updateCalcFields);
+  $('#fVol').addEventListener('input', updateCalcFields);
+  $('#fPrice').addEventListener('input', updateCalcFields);
+  // 金額は入力欄を離れたら3桁区切りで整形
+  $('#fPrice').addEventListener('blur', () => {
+    const n = parseNum($('#fPrice').value);
+    $('#fPrice').value = n == null ? '' : fmtNum(n, 2);
+  });
+  $('#fPrice').addEventListener('focus', () => {
+    $('#fPrice').value = $('#fPrice').value.replace(/,/g, '');
+  });
+  $('#fName').addEventListener('input', () => { $('#nameErr').hidden = true; });
+
+  // 写真：ボタン・ファイル選択
+  $('#photoSlots').addEventListener('click', onPhotoSlotClick);
+  $('#fileCamera').addEventListener('change', (e) => { addPhotoFiles(e.target.files); e.target.value = ''; });
+  $('#filePick').addEventListener('change', (e) => { addPhotoFiles(e.target.files); e.target.value = ''; });
+
+  // 写真：ドラッグ＆ドロップ
+  const area = $('#photoArea');
+  ['dragenter', 'dragover'].forEach((ev) => area.addEventListener(ev, (e) => {
+    if (!e.dataTransfer?.types?.includes('Files')) return;
+    e.preventDefault();
+    area.classList.add('drag');
+  }));
+  ['dragleave', 'drop'].forEach((ev) => area.addEventListener(ev, (e) => {
+    if (ev === 'dragleave' && area.contains(e.relatedTarget)) return;
+    area.classList.remove('drag');
+  }));
+  area.addEventListener('drop', (e) => {
+    e.preventDefault();
+    addPhotoFiles(e.dataTransfer.files);
+  });
+
+  // 保存・削除・閉じる
+  $('#editForm').addEventListener('submit', (e) => { e.preventDefault(); saveForm(); });
+  $('#deleteBtn').addEventListener('click', deleteFromForm);
+  $$('#editDialog [data-close]').forEach((b) => b.addEventListener('click', () => $('#editDialog').close()));
+  $('#editDialog').addEventListener('close', cleanupFormPhotos);
+}
+
+function renderRating() {
+  $$('#ratingInput [data-star]').forEach((b) => b.classList.toggle('on', Number(b.dataset.star) <= form.rating));
+  $('#ratingText').textContent = form.rating ? `${form.rating} / 5` : '未評価';
+}
+
+function updateCalcFields() {
+  const date = $('#fDate').value;
+  // 保存後と同じ結果になるよう、編集中レコードの旧日付を除き、入力中の日付を起点候補に含める
+  const editing = state.bottles.find((b) => b.id === form.editingId);
+  const others = state.bottles.filter((b) => b.id !== form.editingId);
+  const base = weekBaseDate(others, { purchaseDate: date, isSample: editing?.isSample });
+  $('#fWeek').textContent = weekLabel(weekNumber(date, base));
+
+  const vol = parseNum($('#fVol').value);
+  const price = parseNum($('#fPrice').value);
+  $('#fUnit').textContent = fmtUnit(unitPrice({ volumeMl: vol, priceTHB: price }));
+}
+
+// フォームを開く（bottle が null なら新規）
+async function openForm(bottle = null) {
+  cleanupFormPhotos();
+  form.editingId = bottle ? bottle.id : null;
+  form.rating = bottle?.rating || 0;
+  form.photos = [];
+  form.originalPhotoIds = bottle?.photoIds ? [...bottle.photoIds] : [];
+
+  $('#editTitle').textContent = bottle ? '記録を編集' : '新規追加';
+  $('#fNo').textContent = bottle ? displayNo(bottle) : `${state.lastNo + 1}（保存時に確定）`;
+  $('#fDate').value = bottle?.purchaseDate || todayStr();
+  $('#fName').value = bottle?.name || '';
+  $('#fBrand').value = bottle?.brand || '';
+  $('#fCat').value = bottle?.category || CATEGORIES[0];
+  $('#fSub').value = bottle?.subCategory || '';
+  $('#fCountryIn').value = bottle?.country || '';
+  $('#fRegion').value = bottle?.region || '';
+  $('#fVol').value = bottle?.volumeMl ?? '';
+  $('#fAbv').value = bottle?.abv ?? '';
+  $('#fPrice').value = bottle?.priceTHB != null ? fmtNum(bottle.priceTHB, 2) : '';
+  $('#fShop').value = bottle?.shop || '';
+  $('#fStatusIn').value = bottle?.status || STATUSES[0];
+  $('#fMemo').value = bottle?.memo || '';
+  $('#nameErr').hidden = true;
+  $('#deleteBtn').hidden = !bottle;
+  $('#metaLine').textContent = bottle
+    ? `登録：${new Date(bottle.createdAt).toLocaleString('ja-JP')} ／ 更新：${new Date(bottle.updatedAt).toLocaleString('ja-JP')}${bottle.isSample ? ' ／ サンプルデータ' : ''}`
+    : '';
+  renderRating();
+  updateCalcFields();
+
+  // 既存写真のサムネイルを読み込む
+  if (form.originalPhotoIds.length) {
+    const recs = await txRun(['photos'], 'readonly', async (s) => {
+      const out = [];
+      for (const id of form.originalPhotoIds) out.push(await rq(s.photos.get(id)));
+      return out;
+    });
+    form.photos = recs.filter(Boolean).map((p) => ({ id: p.id, thumb: p.thumb, url: URL.createObjectURL(p.thumb || p.blob) }));
+  }
+  renderPhotoSlots();
+
+  const dlg = $('#editDialog');
+  if (!dlg.open) dlg.showModal();
+  $('#editDialog .dlg-body').scrollTop = 0;
+  if (!bottle) $('#fName').focus();
+}
+
+function cleanupFormPhotos() {
+  form.photos.forEach((p) => p.url && URL.revokeObjectURL(p.url));
+  form.photos = [];
+}
+
+function renderPhotoSlots() {
+  const html = [];
+  for (let i = 0; i < MAX_PHOTOS; i++) {
+    const p = form.photos[i];
+    let box, tools = '';
+    if (p && p.busy) {
+      box = '<div class="slot-busy">処理中…</div>';
+    } else if (p) {
+      box = `<img src="${p.url}" alt="${PHOTO_LABELS[i]}">`;
+      tools = `<div class="slot-tools">
+        <button type="button" data-move="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''} aria-label="前へ移動">◀</button>
+        <button type="button" class="del" data-remove="${i}" aria-label="削除">✕</button>
+        <button type="button" data-move="${i}" data-dir="1" ${i >= form.photos.length - 1 ? 'disabled' : ''} aria-label="後ろへ移動">▶</button>
+      </div>`;
+    } else if (i === form.photos.length) {
+      box = `<div class="slot-add">
+        <button type="button" class="btn small" data-pick="camera">📷 撮影</button>
+        <button type="button" class="btn small" data-pick="file">🖼 選択</button>
+        <small>またはドロップ</small>
+      </div>`;
+    } else {
+      box = '';
+    }
+    html.push(`<div class="slot"><div class="slot-label">${i + 1}. ${PHOTO_LABELS[i]}</div><div class="slot-box">${box}</div>${tools}</div>`);
+  }
+  $('#photoSlots').innerHTML = html.join('');
+}
+
+function onPhotoSlotClick(e) {
+  const pick = e.target.closest('[data-pick]');
+  if (pick) {
+    $(pick.dataset.pick === 'camera' ? '#fileCamera' : '#filePick').click();
+    return;
+  }
+  const mv = e.target.closest('[data-move]');
+  if (mv) {
+    const i = Number(mv.dataset.move), j = i + Number(mv.dataset.dir);
+    if (j < 0 || j >= form.photos.length) return;
+    [form.photos[i], form.photos[j]] = [form.photos[j], form.photos[i]];
+    renderPhotoSlots();
+    return;
+  }
+  const rm = e.target.closest('[data-remove]');
+  if (rm) {
+    const [p] = form.photos.splice(Number(rm.dataset.remove), 1);
+    if (p?.url) URL.revokeObjectURL(p.url);
+    renderPhotoSlots();
+  }
+}
+
+// 画像ファイルを追加（リサイズ・圧縮してからフォームに保持）
+async function addPhotoFiles(fileList) {
+  const files = Array.from(fileList || []).filter((f) => f.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(f.name));
+  if (!files.length) return;
+  const room = MAX_PHOTOS - form.photos.length;
+  if (room <= 0) { toast('写真は最大3枚までです'); return; }
+  if (files.length > room) toast(`写真は最大3枚までのため、先頭の${room}枚を追加します`);
+  const targets = files.slice(0, room);
+  const entries = targets.map(() => ({ id: null, busy: true }));
+  form.photos.push(...entries);
+  renderPhotoSlots();
+  for (let k = 0; k < targets.length; k++) {
+    const entry = entries[k];
+    try {
+      const { blob, thumb } = await processImage(targets[k]);
+      Object.assign(entry, { blob, thumb, url: URL.createObjectURL(thumb), busy: false });
+    } catch (err) {
+      console.error(err);
+      toast('この画像は読み込めませんでした（対応形式：JPEG / PNG など）');
+      const idx = form.photos.indexOf(entry);
+      if (idx >= 0) form.photos.splice(idx, 1);
+    }
+    if (!$('#editDialog').open) return;   // 処理中に閉じられた場合
+    renderPhotoSlots();
+  }
+}
+
+// フォームの値を収集
+function collectForm() {
+  return {
+    purchaseDate: $('#fDate').value,
+    name: $('#fName').value.trim(),
+    brand: $('#fBrand').value.trim(),
+    category: $('#fCat').value,
+    subCategory: $('#fSub').value.trim(),
+    country: $('#fCountryIn').value.trim(),
+    region: $('#fRegion').value.trim(),
+    volumeMl: parseNum($('#fVol').value),
+    abv: parseNum($('#fAbv').value),
+    priceTHB: parseNum($('#fPrice').value),
+    shop: $('#fShop').value.trim(),
+    status: $('#fStatusIn').value,
+    rating: form.rating,
+    memo: $('#fMemo').value.replace(/\s+$/, ''),
+  };
+}
+
+async function saveForm() {
+  const data = collectForm();
+  if (!data.name) {
+    $('#nameErr').hidden = false;
+    $('#fName').focus();
+    return;
+  }
+  if (!isValidYMD(data.purchaseDate)) { toast('購入日を正しく入力してください'); $('#fDate').focus(); return; }
+  if (form.photos.some((p) => p.busy)) { toast('写真の処理が終わるまでお待ちください'); return; }
+
+  const now = Date.now();
+  const existing = state.bottles.find((b) => b.id === form.editingId) || null;
+  const keepIds = new Set(form.photos.filter((p) => p.id).map((p) => p.id));
+  const removedIds = form.originalPhotoIds.filter((id) => !keepIds.has(id));
+  const photos = form.photos.slice();
+
+  $('#saveBtn').disabled = true;
+  try {
+    const saved = await txRun(['bottles', 'photos', 'meta'], 'readwrite', async (s) => {
+      for (const id of removedIds) await rq(s.photos.delete(id));
+      const photoIds = [];
+      for (const p of photos) {
+        if (p.id) photoIds.push(p.id);
+        else photoIds.push(await rq(s.photos.add({ blob: p.blob, thumb: p.thumb, createdAt: now })));
+      }
+      let rec;
+      if (existing) {
+        rec = { ...existing, ...data, photoIds, updatedAt: now };
+      } else {
+        // 新規：採番カウンタを進める（削除しても番号は再利用しない）
+        const meta = await rq(s.meta.get('lastNo'));
+        const next = Math.max(meta ? meta.value : 0, state.lastNo) + 1;
+        await rq(s.meta.put({ key: 'lastNo', value: next }));
+        rec = { ...data, no: next, isSample: false, photoIds, createdAt: now, updatedAt: now };
+      }
+      rec.id = await rq(s.bottles.put(rec));
+      return rec;
+    });
+    removedIds.forEach((id) => { const u = thumbCache.get(id); if (u) { URL.revokeObjectURL(u); thumbCache.delete(id); } });
+    $('#editDialog').close();
+    await reload();
+    toast(existing ? '更新しました' : `No.${saved.no} を登録しました`);
+  } catch (err) {
+    console.error(err);
+    toast('保存に失敗しました：' + (err.message || err));
+  } finally {
+    $('#saveBtn').disabled = false;
+  }
+}
+
+async function deleteFromForm() {
+  const b = state.bottles.find((x) => x.id === form.editingId);
+  if (!b) return;
+  const ok = await confirmDanger('記録の削除', `「${b.name}」（No.${displayNo(b)}）を削除します。\n写真も一緒に削除され、元に戻せません。`);
+  if (!ok) return;
+  await deleteBottles([b]);
+  $('#editDialog').close();
+  await reload();
+  toast('削除しました');
+}
+
+// 複数レコードと写真をまとめて削除
+async function deleteBottles(list) {
+  await txRun(['bottles', 'photos'], 'readwrite', async (s) => {
+    for (const b of list) {
+      for (const pid of (b.photoIds || [])) await rq(s.photos.delete(pid));
+      await rq(s.bottles.delete(b.id));
+    }
+  });
+  list.forEach((b) => (b.photoIds || []).forEach((id) => {
+    const u = thumbCache.get(id); if (u) { URL.revokeObjectURL(u); thumbCache.delete(id); }
+  }));
+}
+
+/* =========================================================
+   集計ダッシュボード（SVG で自前描画）
+   ========================================================= */
+function renderStats() {
+  const list = state.bottles;
+  const total = list.reduce((s, b) => s + (b.priceTHB || 0), 0);
+  const priced = list.filter((b) => b.priceTHB != null);
+  const volPriced = list.filter((b) => b.priceTHB != null && b.volumeMl > 0);
+  const volSum = volPriced.reduce((s, b) => s + b.volumeMl, 0);
+  const per100 = volSum ? volPriced.reduce((s, b) => s + b.priceTHB, 0) / volSum * 100 : null;
+  const rated = list.filter((b) => b.rating);
+  const avgRating = rated.length ? rated.reduce((s, b) => s + b.rating, 0) / rated.length : null;
+  const sampleCount = list.filter((b) => b.isSample).length;
+  const statusCount = STATUSES.map((st) => `${st} ${list.filter((b) => b.status === st).length}`).join(' ／ ');
+
+  $('#kpis').innerHTML = `
+    <div class="kpi"><div class="label">合計本数</div><div class="value num">${fmtNum(list.length)}<small>本</small></div><div class="sub">${statusCount}</div></div>
+    <div class="kpi"><div class="label">合計金額</div><div class="value num">${fmtTHB(total)}</div><div class="sub">${sampleCount ? `サンプル${sampleCount}本を含む` : 'THB'}</div></div>
+    <div class="kpi"><div class="label">平均単価（1本あたり）</div><div class="value num">${priced.length ? fmtTHB(Math.round(total / priced.length)) : '—'}</div><div class="sub">金額入力済み ${priced.length}本の平均</div></div>
+    <div class="kpi"><div class="label">平均単価（100mlあたり）</div><div class="value num">${fmtUnit(per100)}</div><div class="sub">平均評価 ${avgRating ? avgRating.toFixed(1) + ' / 5' : '—'}</div></div>`;
+
+  // 種別ごと
+  const cat = new Map();
+  list.forEach((b) => {
+    const k = b.category || 'その他';
+    const v = cat.get(k) || { count: 0, amount: 0, priced: 0 };
+    v.count++; if (b.priceTHB != null) { v.amount += b.priceTHB; v.priced++; }
+    cat.set(k, v);
+  });
+  const catRows = [...cat.entries()].map(([label, v]) => ({ label, ...v }));
+  hBarChart($('#chartCatCount'), catRows.slice().sort((a, b) => b.count - a.count || b.amount - a.amount)
+    .map((r) => ({ label: r.label, value: r.count, text: `${r.count}本`, tip: `${r.label}：${r.count}本（${fmtTHB(r.amount)}）` })));
+  hBarChart($('#chartCatAmount'), catRows.slice().sort((a, b) => b.amount - a.amount)
+    .map((r) => ({ label: r.label, value: r.amount, text: fmtTHB(r.amount), tip: `${r.label}：${fmtTHB(r.amount)}（${r.count}本）` })));
+  $('#catTable').innerHTML = catRows.length ? `<table class="mini-table num">
+    <thead><tr><th>種別</th><th>本数</th><th>合計金額</th><th>平均単価</th></tr></thead>
+    <tbody>${catRows.sort((a, b) => b.count - a.count).map((r) => `<tr><td>${esc(r.label)}</td><td>${r.count}</td><td>${fmtTHB(r.amount)}</td><td>${r.priced ? fmtTHB(Math.round(r.amount / r.priced)) : '—'}</td></tr>`).join('')}</tbody>
+    </table>` : '<div class="chart-empty">データがありません</div>';
+
+  // 原産国ごと（上位10＋その他）
+  const cn = new Map();
+  list.forEach((b) => { const k = b.country || '未入力'; cn.set(k, (cn.get(k) || 0) + 1); });
+  let cRows = [...cn.entries()].sort((a, b) => b[1] - a[1]);
+  if (cRows.length > 10) {
+    const rest = cRows.slice(10).reduce((s, r) => s + r[1], 0);
+    cRows = [...cRows.slice(0, 10), ['その他', rest]];
+  }
+  hBarChart($('#chartCountry'), cRows.map(([label, v]) => ({ label, value: v, text: `${v}本`, tip: `${label}：${v}本` })));
+
+  // 月別（直近12か月：今月か最新購入月のうち新しい方で終わる）
+  const latest = list.reduce((m, b) => (isValidYMD(b.purchaseDate) && b.purchaseDate > m) ? b.purchaseDate : m, todayStr());
+  const [ly, lm] = latest.split('-').map(Number);
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(ly, lm - 1 - i, 1);
+    months.push({ key: `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`, y: d.getFullYear(), m: d.getMonth() + 1, amount: 0, count: 0 });
+  }
+  const mIndex = new Map(months.map((m) => [m.key, m]));
+  list.forEach((b) => {
+    const m = isValidYMD(b.purchaseDate) && mIndex.get(b.purchaseDate.slice(0, 7));
+    if (m) { m.amount += b.priceTHB || 0; m.count++; }
+  });
+  vBarChart($('#chartMonthly'), months);
+}
+
+// SVG要素の組み立て用
+const svgEl = (w, h, inner, label) =>
+  `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+// 右端だけ角丸の横棒（基準線側は角を付けない）
+function hBarPath(x, y, w, h, r) {
+  if (w <= 0) return '';
+  r = Math.min(r, w, h / 2);
+  return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`;
+}
+// 上端だけ角丸の縦棒
+function vBarPath(x, y, w, h, r) {
+  if (h <= 0) return '';
+  r = Math.min(r, h, w / 2);
+  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+}
+const truncate = (s, n) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
+
+// 横棒グラフ：rows = [{ label, value, text, tip }]
+function hBarChart(el, rows) {
+  if (!rows.length || rows.every((r) => !r.value)) { el.innerHTML = '<div class="chart-empty">データがありません</div>'; return; }
+  const W = Math.max(260, el.clientWidth || 320);
+  const labelW = Math.min(110, Math.round(W * 0.3));
+  const valueW = 86;
+  const barMax = W - labelW - valueW - 8;
+  const rowH = 30, barH = 14;
+  const H = rows.length * rowH;
+  const max = Math.max(...rows.map((r) => r.value), 1);
+  const inner = rows.map((r, i) => {
+    const y = i * rowH;
+    const w = r.value > 0 ? Math.max(2, (r.value / max) * barMax) : 0;
+    return `<g class="row"><title>${esc(r.tip)}</title>
+      <rect class="hit" x="0" y="${y}" width="${W}" height="${rowH}" rx="6"/>
+      <text x="${labelW - 10}" y="${y + rowH / 2}" text-anchor="end" dominant-baseline="central">${esc(truncate(r.label, 8))}</text>
+      <path class="bar" d="${hBarPath(labelW, y + (rowH - barH) / 2, w, barH, 4)}"/>
+      <text class="val" x="${labelW + w + 6}" y="${y + rowH / 2}" dominant-baseline="central">${esc(r.text)}</text>
+    </g>`;
+  }).join('');
+  const base = `<line class="base-line" x1="${labelW}" x2="${labelW}" y1="0" y2="${H}"/>`;
+  el.innerHTML = svgEl(W, H, base + inner, '横棒グラフ');
+}
+
+// きりの良い目盛り間隔
+function niceStep(max, count = 4) {
+  const raw = max / count;
+  const p = 10 ** Math.floor(Math.log10(raw));
+  const n = raw / p;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p;
+}
+const shortTHB = (v) => v >= 1000 ? `฿${fmtNum(v / 1000, 1)}k` : `฿${fmtNum(v)}`;
+
+// 月別の縦棒グラフ
+function vBarChart(el, months) {
+  if (months.every((m) => !m.amount)) { el.innerHTML = '<div class="chart-empty">直近12か月の購入データがありません</div>'; return; }
+  const W = Math.max(280, el.clientWidth || 600);
+  const H = 240;
+  const m = { l: 52, r: 8, t: 22, b: 36 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const maxV = Math.max(...months.map((x) => x.amount));
+  const step = niceStep(maxV);
+  const top = Math.ceil(maxV / step) * step;
+  const slot = pw / months.length;
+  const bw = Math.min(36, slot * 0.62);
+  let g = '';
+  // 目盛り線
+  for (let v = 0; v <= top + 1e-9; v += step) {
+    const y = m.t + ph - (v / top) * ph;
+    g += `<line class="${v === 0 ? 'base-line' : 'grid-line'}" x1="${m.l}" x2="${W - m.r}" y1="${y}" y2="${y}"/>`;
+    g += `<text class="axis" x="${m.l - 8}" y="${y}" text-anchor="end" dominant-baseline="central">${shortTHB(v)}</text>`;
+  }
+  const maxIdx = months.findIndex((x) => x.amount === maxV);
+  const every = slot < 34 ? 2 : 1;       // 狭い画面ではラベルを間引く
+  months.forEach((mo, i) => {
+    const x = m.l + slot * i + (slot - bw) / 2;
+    const h = (mo.amount / top) * ph;
+    const y = m.t + ph - h;
+    const cx = m.l + slot * i + slot / 2;
+    g += `<g class="row"><title>${mo.y}年${mo.m}月：${fmtTHB(mo.amount)}（${mo.count}本）</title>
+      <rect class="hit" x="${m.l + slot * i}" y="${m.t}" width="${slot}" height="${ph}"/>
+      <path class="bar" d="${vBarPath(x, y, bw, h, 4)}"/>
+      ${i === maxIdx ? `<text class="val" x="${cx}" y="${y - 6}" text-anchor="middle">${fmtTHB(mo.amount)}</text>` : ''}
+    </g>`;
+    if ((months.length - 1 - i) % every === 0) {
+      g += `<text class="axis" x="${cx}" y="${H - m.b + 16}" text-anchor="middle">${mo.m}月</text>`;
+      if (i === 0 || mo.m === 1) g += `<text class="axis" x="${cx}" y="${H - m.b + 30}" text-anchor="middle">${mo.y}</text>`;
+    }
+  });
+  el.innerHTML = svgEl(W, H, g, '月別の購入金額');
+}
+
+/* =========================================================
+   バックアップ：JSON エクスポート／インポート、CSV エクスポート
+   ========================================================= */
+const EXPORT_FIELDS = ['no', 'isSample', 'sampleNo', 'purchaseDate', 'name', 'brand', 'category', 'subCategory', 'country', 'region',
+  'volumeMl', 'abv', 'priceTHB', 'shop', 'status', 'rating', 'memo', 'createdAt', 'updatedAt'];
+
+async function exportJSON() {
+  if (!state.bottles.length) { toast('エクスポートするデータがありません'); return; }
+  toast('エクスポートを準備しています…');
+  const photos = await idbGetAll('photos');
+  const pmap = new Map(photos.map((p) => [p.id, p]));
+  const bottles = [];
+  const sorted = state.bottles.slice().sort((a, b) => (SORT_VALUE.no(a) - SORT_VALUE.no(b)));
+  for (const b of sorted) {
+    const rec = {};
+    EXPORT_FIELDS.forEach((k) => { if (b[k] !== undefined) rec[k] = b[k]; });
+    rec.photos = [];
+    for (const id of (b.photoIds || [])) {
+      const p = pmap.get(id);
+      if (p) rec.photos.push(await blobToDataURL(p.blob));
+    }
+    bottles.push(rec);
+  }
+  const data = { app: 'sake-collection', version: 1, exportedAt: new Date().toISOString(), lastNo: state.lastNo, bottles };
+  downloadBlob(new Blob([JSON.stringify(data)], { type: 'application/json' }), `sake-collection-${todayStr()}.json`);
+  toast(`${bottles.length}件をエクスポートしました`);
+}
+
+// インポートデータの1件を安全な形に整える
+function normalizeBottle(raw) {
+  const str = (v) => (v == null ? '' : String(v));
+  const num = (v) => { const n = parseNum(v); return n == null ? null : n; };
+  const rating = Math.round(Number(raw.rating) || 0);
+  return {
+    no: Number.isInteger(raw.no) && raw.no > 0 ? raw.no : null,
+    isSample: raw.isSample === true,
+    sampleNo: Number.isInteger(raw.sampleNo) ? raw.sampleNo : null,
+    purchaseDate: isValidYMD(raw.purchaseDate) ? raw.purchaseDate : todayStr(),
+    name: str(raw.name).trim() || '（名称未設定）',
+    brand: str(raw.brand), category: CATEGORIES.includes(raw.category) ? raw.category : 'その他',
+    subCategory: str(raw.subCategory), country: str(raw.country), region: str(raw.region),
+    volumeMl: num(raw.volumeMl), abv: num(raw.abv), priceTHB: num(raw.priceTHB), shop: str(raw.shop),
+    status: STATUSES.includes(raw.status) ? raw.status : STATUSES[0],
+    rating: Math.min(5, Math.max(0, rating)), memo: str(raw.memo),
+    createdAt: Number(raw.createdAt) || Date.now(), updatedAt: Number(raw.updatedAt) || Date.now(),
+  };
+}
+
+async function importJSON(file) {
+  let data;
+  try {
+    data = JSON.parse(await file.text());
+  } catch (_) {
+    toast('JSONファイルを読み込めませんでした'); return;
+  }
+  if (!data || !Array.isArray(data.bottles)) { toast('このアプリのバックアップファイルではないようです'); return; }
+
+  const mode = await ask({
+    title: 'インポート方法の選択',
+    message: `${data.bottles.length}件のデータが見つかりました。\n\n「上書き」…現在のデータをすべて削除して置き換えます。\n「追加」…現在のデータを残したまま追加します（No.は続きから振り直します）。`,
+    buttons: [{ label: 'キャンセル', value: '' }, { label: '追加', value: 'append', kind: 'primary' }, { label: '上書き', value: 'overwrite', kind: 'danger' }],
+  });
+  if (!mode) return;
+  if (mode === 'overwrite' && state.bottles.length &&
+      !(await confirmDanger('上書きの確認', `現在の${state.bottles.length}件は削除されます。よろしいですか？`, '上書きする'))) return;
+
+  toast('インポート中…（写真が多いと時間がかかります）');
+  try {
+    // 画像の変換はトランザクションの外で先に済ませる
+    const prepared = [];
+    for (const raw of data.bottles) {
+      const rec = normalizeBottle(raw || {});
+      const photos = [];
+      for (const src of (Array.isArray(raw?.photos) ? raw.photos.slice(0, MAX_PHOTOS) : [])) {
+        try {
+          const blob = dataURLToBlob(typeof src === 'string' ? src : src.dataUrl);
+          const img = await loadImage(blob);
+          photos.push({ blob, thumb: await resizeToBlob(img, THUMB_MAX_SIDE, THUMB_QUALITY) });
+        } catch (e) { console.warn('写真をスキップしました', e); }
+      }
+      prepared.push({ rec, photos });
+    }
+    // 実データは元の No. 順、サンプルは後ろ
+    prepared.sort((a, b) => (a.rec.isSample - b.rec.isSample) || ((a.rec.no || 1e9) - (b.rec.no || 1e9)));
+
+    const overwrite = mode === 'overwrite';
+    await txRun(['bottles', 'photos', 'meta'], 'readwrite', async (s) => {
+      if (overwrite) {
+        await rq(s.bottles.clear()); await rq(s.photos.clear()); await rq(s.meta.clear());
+      }
+      let lastNo = overwrite ? 0 : state.lastNo;
+      let sampleMax = overwrite ? 0 : state.bottles.filter((b) => b.isSample).reduce((m, b) => Math.max(m, b.sampleNo || 0), 0);
+      // 上書き時は元の No. を維持（重複・欠番は後で振る）
+      if (overwrite) prepared.forEach(({ rec }) => { if (!rec.isSample && rec.no) lastNo = Math.max(lastNo, rec.no); });
+      const assigned = new Set();
+      for (const { rec, photos } of prepared) {
+        const photoIds = [];
+        for (const p of photos) photoIds.push(await rq(s.photos.add({ ...p, createdAt: Date.now() })));
+        rec.photoIds = photoIds;
+        if (rec.isSample) {
+          rec.no = null;
+          rec.sampleNo = ++sampleMax;
+        } else if (overwrite && rec.no && !assigned.has(rec.no)) {
+          assigned.add(rec.no);
+        } else {
+          rec.no = ++lastNo;
+        }
+        if (!rec.isSample) delete rec.sampleNo;
+        await rq(s.bottles.add(rec));
+      }
+      if (overwrite && Number.isInteger(data.lastNo)) lastNo = Math.max(lastNo, data.lastNo);
+      await rq(s.meta.put({ key: 'lastNo', value: lastNo }));
+    });
+    clearThumbCache();
+    await reload();
+    toast(`${prepared.length}件をインポートしました`);
+  } catch (err) {
+    console.error(err);
+    toast('インポートに失敗しました：' + (err.message || err));
+  }
+}
+
+function exportCSV() {
+  if (!state.bottles.length) { toast('エクスポートするデータがありません'); return; }
+  const base = weekBaseDate();
+  const header = ['No.', 'サンプル', '購入日', '週番号', '銘柄名', 'ブランド／蒸留所・醸造所', '種別', 'サブ種別', '原産国', '産地・地域',
+    '内容量(ml)', 'アルコール度数(%)', '購入金額(THB)', '100mlあたり単価(THB)', '購入店', '状態', '評価', 'メモ', '写真枚数'];
+  const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const sorted = state.bottles.slice().sort((a, b) => SORT_VALUE.no(a) - SORT_VALUE.no(b));
+  const lines = [header.map(q).join(',')];
+  sorted.forEach((b) => {
+    const up = unitPrice(b);
+    const wn = weekNumber(b.purchaseDate, base);
+    lines.push([displayNo(b), b.isSample ? '○' : '', b.purchaseDate, wn && wn >= 1 ? `第${wn}週` : '', b.name, b.brand, b.category, b.subCategory,
+      b.country, b.region, b.volumeMl ?? '', b.abv ?? '', b.priceTHB ?? '', up == null ? '' : Math.round(up * 10) / 10,
+      b.shop, b.status, b.rating || '', b.memo, (b.photoIds || []).length].map(q).join(','));
+  });
+  // Excel で文字化けしないよう UTF-8 BOM を付ける
+  const blob = new Blob(['﻿' + lines.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
+  downloadBlob(blob, `sake-collection-${todayStr()}.csv`);
+  toast(`${sorted.length}件をCSVに出力しました`);
+}
+
+/* =========================================================
+   サンプルデータ
+   ・isSample: true の印を付ける
+   ・No. は S1〜S5 の別系統（実データの採番カウンタは使わない）
+   ========================================================= */
+const SAMPLE_DATA = [
+  { days: -28, name: '響 JAPANESE HARMONY', brand: 'サントリー', category: 'ウイスキー', subCategory: 'ブレンデッド', country: '日本', region: '大阪府・山梨県',
+    volumeMl: 700, abv: 43, priceTHB: 3290, shop: 'Central Chidlom', status: '開栓済み', rating: 5,
+    memo: '華やかで蜂蜜のような甘さ。ロックでも崩れない。', colors: ['#6b3a12', '#d08a2e'], label: '#e8d7b0' },
+  { days: -21, name: '獺祭 純米大吟醸45', brand: '旭酒造', category: '日本酒', subCategory: '純米大吟醸', country: '日本', region: '山口県',
+    volumeMl: 720, abv: 16, priceTHB: 1450, shop: 'Fuji Super', status: '飲み切り', rating: 4,
+    memo: 'フルーティーで軽やか。よく冷やして。', colors: ['#1f3a2e', '#6f9c7c'], label: '#f5f1e6' },
+  { days: -14, name: 'Cloudy Bay Sauvignon Blanc', brand: 'Cloudy Bay', category: 'ワイン', subCategory: '白ワイン', country: 'ニュージーランド', region: 'マールボロ',
+    volumeMl: 750, abv: 13.5, priceTHB: 1390, shop: 'Villa Market', status: '未開栓', rating: 0,
+    memo: '週末のシーフード用に。', colors: ['#8a8a3a', '#d6d68a'], label: '#fbfaf2' },
+  { days: -7, name: "Hendrick's Gin", brand: 'William Grant & Sons', category: 'ジン', subCategory: 'クラフトジン', country: 'スコットランド', region: 'ガーヴァン',
+    volumeMl: 700, abv: 41.4, priceTHB: 1690, shop: 'Tops', status: '開栓済み', rating: 4,
+    memo: 'キュウリとバラの香り。トニックにキュウリを添えて。', colors: ['#1c1c1c', '#4a4a4a'], label: '#efe6d2' },
+  { days: 0, name: 'SangSom Special Rum', brand: 'Thai Beverage', category: 'ラム', subCategory: 'ゴールドラム', country: 'タイ', region: 'ナコーンパトム',
+    volumeMl: 700, abv: 40, priceTHB: 330, shop: '7-Eleven', status: '開栓済み', rating: 3,
+    memo: 'ソーダ割りでタイ料理に。コスパ抜群。', colors: ['#7a2f10', '#c46a28'], label: '#f2c14e' },
+];
+
+// サンプル用のボトル画像を Canvas で描く
+function drawSampleImage(s, variant) {
+  const W = 600, H = 800;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  // 背景
+  const bg = x.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, variant ? '#e9e1d2' : '#3b2618');
+  bg.addColorStop(1, variant ? '#cdbfa6' : '#1a110b');
+  x.fillStyle = bg; x.fillRect(0, 0, W, H);
+  // ボトル形状
+  const bx = W / 2;
+  x.beginPath();
+  x.moveTo(bx - 34, 90); x.lineTo(bx + 34, 90); x.lineTo(bx + 34, 230);
+  x.quadraticCurveTo(bx + 130, 270, bx + 130, 380); x.lineTo(bx + 130, 700);
+  x.quadraticCurveTo(bx + 130, 730, bx + 100, 730); x.lineTo(bx - 100, 730);
+  x.quadraticCurveTo(bx - 130, 730, bx - 130, 700); x.lineTo(bx - 130, 380);
+  x.quadraticCurveTo(bx - 130, 270, bx - 34, 230); x.closePath();
+  const bottle = x.createLinearGradient(bx - 130, 0, bx + 130, 0);
+  bottle.addColorStop(0, s.colors[0]); bottle.addColorStop(0.45, s.colors[1]); bottle.addColorStop(1, s.colors[0]);
+  x.fillStyle = bottle; x.fill();
+  // ハイライト
+  x.fillStyle = 'rgba(255,255,255,.18)'; x.fillRect(bx - 100, 330, 14, 360);
+  // キャップ
+  x.fillStyle = '#c9a45c'; x.fillRect(bx - 38, 70, 76, 60);
+  // ラベル
+  x.fillStyle = s.label; x.fillRect(bx - 112, 420, 224, 220);
+  x.strokeStyle = '#c9a45c'; x.lineWidth = 3; x.strokeRect(bx - 104, 428, 208, 204);
+  x.fillStyle = '#2b1d14'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.font = 'bold 26px serif';
+  const words = variant ? ['BACK LABEL', s.region || ''] : wrapText(x, s.name, 190);
+  words.slice(0, 3).forEach((w, i) => x.fillText(w, bx, 480 + i * 34));
+  x.font = '18px serif';
+  x.fillText(`${s.abv}% ・ ${s.volumeMl}ml`, bx, 600);
+  // フッター文字
+  x.fillStyle = variant ? '#3b2618' : '#e9cf94'; x.font = '20px sans-serif';
+  x.fillText(variant ? 'サンプル画像（裏）' : 'サンプル画像', bx, 770);
+  return c;
+}
+function wrapText(ctx, text, maxW) {
+  const out = []; let line = '';
+  for (const ch of text) {
+    if (ctx.measureText(line + ch).width > maxW && line) { out.push(line); line = ch; } else line += ch;
+  }
+  if (line) out.push(line);
+  return out;
+}
+
+async function addSamples() {
+  const existing = state.bottles.filter((b) => b.isSample);
+  if (existing.length) {
+    const ok = await ask({ title: 'サンプルデータ', message: `サンプルが既に${existing.length}件あります。入れ直しますか？`,
+      buttons: [{ label: 'キャンセル', value: '' }, { label: '入れ直す', value: 'ok', kind: 'primary' }] });
+    if (ok !== 'ok') return;
+    await deleteBottles(existing);
+  }
+  // 画像生成はトランザクションの外で
+  const today = todayStr();
+  const prepared = [];
+  for (const [i, s] of SAMPLE_DATA.entries()) {
+    const imgs = [];
+    const count = i === 0 ? 2 : 1;          // 1件目は2枚（ビューアの左右切替の確認用）
+    for (let v = 0; v < count; v++) {
+      const cv = drawSampleImage(s, v);
+      imgs.push({ blob: await resizeToBlob(cv, PHOTO_MAX_SIDE, PHOTO_QUALITY), thumb: await resizeToBlob(cv, THUMB_MAX_SIDE, THUMB_QUALITY) });
+    }
+    prepared.push({ s, imgs, sampleNo: i + 1, date: addDays(today, s.days) });
+  }
+  const now = Date.now();
+  await txRun(['bottles', 'photos'], 'readwrite', async (st) => {
+    for (const { s, imgs, sampleNo, date } of prepared) {
+      const photoIds = [];
+      for (const im of imgs) photoIds.push(await rq(st.photos.add({ ...im, createdAt: now })));
+      const { days, colors, label, ...fields } = s;
+      await rq(st.bottles.add({ ...fields, purchaseDate: date, no: null, isSample: true, sampleNo, photoIds, createdAt: now, updatedAt: now }));
+    }
+  });
+  await reload();
+  toast('サンプルデータを5件投入しました');
+}
+
+async function deleteSamples() {
+  const samples = state.bottles.filter((b) => b.isSample);
+  if (!samples.length) { toast('サンプルデータはありません'); return; }
+  if (!(await confirmDanger('サンプルのみ削除', `サンプルデータ${samples.length}件を削除します。\n実データは削除されません。`))) return;
+  await deleteBottles(samples);
+  await reload();
+  toast('サンプルデータを削除しました');
+}
+
+async function deleteAll() {
+  if (!state.bottles.length) { toast('削除するデータがありません'); return; }
+  if (!(await confirmDanger('全データを削除', `登録済みの${state.bottles.length}件と写真をすべて削除します。\n削除前にJSONエクスポートでバックアップを取ることをおすすめします。`, '次へ'))) return;
+  if (!(await confirmDanger('最終確認', '本当にすべて削除しますか？この操作は元に戻せません。\n（No.の採番も1からやり直しになります）', 'すべて削除'))) return;
+  await txRun(['bottles', 'photos', 'meta'], 'readwrite', async (s) => {
+    await rq(s.bottles.clear()); await rq(s.photos.clear()); await rq(s.meta.clear());
+  });
+  clearThumbCache();
+  await reload();
+  toast('すべてのデータを削除しました');
+}
+
+/* =========================================================
+   テーマ（ライト／ダーク）と表示設定の保存
+   ========================================================= */
+function lsGet(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* 保存できなくても動作は継続 */ } }
+
+function currentTheme() {
+  const t = document.documentElement.dataset.theme;
+  if (t) return t;
+  return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme(t) {
+  if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  $('#themeBtn').textContent = currentTheme() === 'dark' ? '☾' : '☀';
+}
+
+/* =========================================================
+   イベント設定
+   ========================================================= */
+function setupEvents() {
+  // タブ切替
+  $$('.tab').forEach((t) => t.addEventListener('click', () => {
+    state.tab = t.dataset.tab;
+    $$('.tab').forEach((x) => x.setAttribute('aria-selected', String(x === t)));
+    $('#listTab').hidden = state.tab !== 'list';
+    $('#statsTab').hidden = state.tab !== 'stats';
+    if (state.tab === 'stats') renderStats();
+  }));
+
+  // 検索・絞り込み・並べ替え
+  let qTimer = null;
+  $('#q').addEventListener('input', (e) => {
+    clearTimeout(qTimer);
+    qTimer = setTimeout(() => { state.q = e.target.value; renderList(); }, 150);
+  });
+  $('#fCategory').addEventListener('change', (e) => { state.fCategory = e.target.value; renderList(); });
+  $('#fCountry').addEventListener('change', (e) => { state.fCountry = e.target.value; renderList(); });
+  $('#fStatus').addEventListener('change', (e) => { state.fStatus = e.target.value; renderList(); });
+  $('#sortSel').addEventListener('change', (e) => {
+    [state.sortKey, state.sortDir] = e.target.value.split(':');
+    renderList();
+  });
+  $$('.seg [data-view]').forEach((b) => b.addEventListener('click', () => {
+    state.view = b.dataset.view;
+    lsSet(LS_VIEW, state.view);
+    renderFilters();
+    renderList();
+  }));
+
+  // 一覧のクリック（写真→ビューア、見出し→並べ替え、行/カード→編集）
+  $('#listArea').addEventListener('click', (e) => {
+    const emptyBtn = e.target.closest('[data-empty]');
+    if (emptyBtn) { emptyBtn.dataset.empty === 'add' ? openForm() : addSamples(); return; }
+    const th = e.target.closest('th[data-sort]');
+    if (th) {
+      const key = th.dataset.sort;
+      if (state.sortKey === key) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+      else { state.sortKey = key; state.sortDir = ['name', 'category', 'country', 'status', 'no'].includes(key) ? 'asc' : 'desc'; }
+      renderFilters();
+      renderList();
+      return;
+    }
+    const v = e.target.closest('[data-viewer]');
+    if (v) { openViewer(Number(v.dataset.viewer)); return; }
+    const item = e.target.closest('[data-id]');
+    if (item) openForm(state.bottles.find((b) => b.id === Number(item.dataset.id)));
+  });
+
+  // ヘッダー
+  $('#addBtn').addEventListener('click', () => openForm());
+  $('#themeBtn').addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    lsSet(LS_THEME, next);
+    applyTheme(next);
+    if (state.tab === 'stats') renderStats();
+  });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme(lsGet(LS_THEME)));
+
+  // ⚙メニュー
+  const menu = $('#menu'), menuBtn = $('#menuBtn');
+  const closeMenu = () => { menu.hidden = true; menuBtn.setAttribute('aria-expanded', 'false'); };
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu.hidden = !menu.hidden;
+    menuBtn.setAttribute('aria-expanded', String(!menu.hidden));
+  });
+  document.addEventListener('click', (e) => { if (!menu.hidden && !menu.contains(e.target)) closeMenu(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+  menu.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    closeMenu();
+    ({
+      'export-json': exportJSON,
+      'import-json': () => $('#importFile').click(),
+      'export-csv': exportCSV,
+      'add-samples': addSamples,
+      'delete-samples': deleteSamples,
+      'delete-all': deleteAll,
+    })[btn.dataset.action]();
+  });
+  $('#importFile').addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    e.target.value = '';
+    if (f) importJSON(f);
+  });
+
+  // ダイアログの背景クリックで閉じる（編集フォームは誤操作防止のため閉じない）
+  $('#askDialog').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close(''); });
+  $$('#viewerDialog [data-close]').forEach((b) => b.addEventListener('click', () => $('#viewerDialog').close()));
+
+  // 画面幅が変わったらグラフを描き直す
+  let rTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(rTimer);
+    rTimer = setTimeout(() => { if (state.tab === 'stats') renderStats(); }, 150);
+  });
+}
+
+/* =========================================================
+   起動
+   ========================================================= */
+async function init() {
+  applyTheme(lsGet(LS_THEME));
+  const savedView = lsGet(LS_VIEW);
+  state.view = savedView === 'table' || savedView === 'card' ? savedView : (window.innerWidth < 720 ? 'card' : 'table');
+
+  setupEvents();
+  setupForm();
+  setupViewer();
+
+  try {
+    if (!('indexedDB' in window)) throw new Error('このブラウザは IndexedDB に対応していません');
+    db = await openDB();
+    await reload();
+  } catch (err) {
+    console.error(err);
+    $('#listArea').innerHTML = `<div class="empty"><h2>データベースを開けませんでした</h2>
+      <p>${esc(err.message || err)}<br>プライベートブラウズを解除するか、別のブラウザ（Chrome / Edge / Safari 最新版）でお試しください。</p></div>`;
+  }
+}
+init();
+</script>
+</body>
+</html>
