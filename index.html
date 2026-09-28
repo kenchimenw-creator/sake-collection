@@ -189,6 +189,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
 .badge.st-開栓済み { background: color-mix(in srgb, var(--gold) 22%, var(--surface)); border-color: transparent; color: var(--text); }
 .badge.st-飲み切り { color: var(--muted); }
 .badge.sample { border-style: dashed; color: var(--muted); }
+.badge.nophoto { font-size: 10px; border-style: dashed; color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
+.tbl .badge.nophoto { display: block; width: max-content; margin-top: 4px; }
 
 /* ===== カード表示 ===== */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
@@ -439,6 +441,9 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
       <button type="button" data-action="add-samples">サンプルデータを投入（5件）</button>
       <button type="button" data-action="delete-samples">サンプルのみ削除</button>
       <hr>
+      <div class="menu-label">登録データ（imports）</div>
+      <button type="button" data-action="check-imports">新しい登録データを確認</button>
+      <hr>
       <div class="menu-label">以前のデータ</div>
       <button type="button" data-action="migrate">この端末のデータをクラウドへ移行</button>
       <hr>
@@ -615,7 +620,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
 import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
-  collection, doc, onSnapshot, getDoc, getDocFromCache, writeBatch,
+  collection, doc, onSnapshot, getDoc, getDocFromCache, writeBatch, runTransaction,
 } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 window.__sakeAppReady = true;
@@ -768,6 +773,7 @@ const userCol = (name) => collection(db, 'users', uid, name);
 const bottleRef = (id) => (id ? doc(userCol('bottles'), id) : doc(userCol('bottles')));
 const photoRef = (id) => (id ? doc(userCol('photos'), id) : doc(userCol('photos')));
 const counterRef = () => doc(db, 'users', uid, 'meta', 'counter');
+const importsRef = () => doc(db, 'users', uid, 'meta', 'imports');   // { files: [取り込み済みのファイル名] }
 
 // 保存用の形にする（画面用の id や旧形式の photoIds は含めない）
 function toBottleDoc(b) {
@@ -843,6 +849,7 @@ function subscribe() {
     if (!snap.metadata.fromCache) {
       if (!snap.metadata.hasPendingWrites) fixDuplicateNumbers();
       checkLegacyMigration();
+      if (!importsChecked) { importsChecked = true; checkImports(); }
     }
   }, onListenError));
   unsubs.push(onSnapshot(counterRef(), (snap) => {
@@ -1104,6 +1111,9 @@ function renderList() {
   area.innerHTML = state.view === 'table' ? tableHTML(list, base) : cardsHTML(list, base);
 }
 
+// 写真のない記録に付ける印（あとで実物を撮影して追加する目印）
+const NO_PHOTO_BADGE = '<span class="badge nophoto">写真未登録</span>';
+
 function tableHTML(list, base) {
   const th = (key, label, cls = '') => {
     const arrow = state.sortKey === key ? `<span class="arrow">${state.sortDir === 'asc' ? '▲' : '▼'}</span>` : '';
@@ -1113,7 +1123,7 @@ function tableHTML(list, base) {
     const n = b.photos?.length || 0;
     const photo = n
       ? `<button type="button" class="thumb-btn" data-viewer="${esc(b.id)}" aria-label="写真を拡大"><img class="thumb" src="${esc(b.photos[0].thumb)}" alt="" loading="lazy" decoding="async">${n > 1 ? `<span class="cnt">${n}</span>` : ''}</button>`
-      : `<div class="no-photo">${BOTTLE_ICON}</div>`;
+      : `<div class="no-photo">${BOTTLE_ICON}</div>${NO_PHOTO_BADGE}`;
     return `<tr data-id="${esc(b.id)}">
       <td>${photo}</td>
       <td class="num">${esc(displayNo(b))}${b.isSample ? ' <span class="badge sample">サンプル</span>' : ''}</td>
@@ -1148,7 +1158,7 @@ function cardsHTML(list, base) {
     const endTag = n ? '</button>' : '</div>';
     return `<article class="card" data-id="${esc(b.id)}">
       ${photo}
-        <div class="overlay"><span class="badge st-${esc(b.status)}">${esc(b.status)}</span>${b.isSample ? '<span class="badge sample">サンプル</span>' : ''}</div>
+        <div class="overlay"><span class="badge st-${esc(b.status)}">${esc(b.status)}</span>${b.isSample ? '<span class="badge sample">サンプル</span>' : ''}${n ? '' : NO_PHOTO_BADGE}</div>
         ${n > 1 ? `<span class="cnt">📷 ${n}</span>` : ''}
       ${endTag}
       <div class="card-body">
@@ -1870,6 +1880,8 @@ function writePrepared(prepared, { replace = false, keepNo = false, importedLast
   batch.set(counterRef(), { lastNo }, { merge: true });
   commitBatch(batch);
   state.metaLastNo = lastNo;
+  // 画面への反映を待たずに次の採番（続けて取り込む場合など）に使えるようにする
+  state.lastNo = replace ? lastNo : Math.max(state.lastNo, lastNo);
 }
 
 function exportCSV() {
@@ -2126,6 +2138,111 @@ async function migrateLegacy(ldb, bottles) {
 }
 
 /* =========================================================
+   登録データ（imports/）の自動取り込み
+   Claude Code が imports/ に置いた JSON（エクスポートと同じ形式）を取り込む。
+   imports/index.json … { files: ["YYYYMMDD-HHMM-<slug>.json", ...] }
+   取り込み済みのファイル名は users/{uid}/meta/imports に記録し、他の端末で二重に取り込まない
+   ========================================================= */
+const IMPORT_FILE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*\.json$/;
+let importsChecked = false;   // ログイン後の初回確認を済ませたか
+let importsBusy = false;
+let importsLastAt = 0;
+
+// imports/ は常に最新を取得（ブラウザ・Service Worker・配信サーバーのキャッシュを使わない）
+async function fetchImportJSON(name) {
+  const url = new URL(`imports/${name}`, location.href);
+  url.searchParams.set('t', Date.now());
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { status: res.status });
+  return res.json();
+}
+
+// サーバー上の取り込み済みファイル名（オフラインなどで取得できなければ例外）
+async function importedFileSet() {
+  const snap = await getDoc(importsRef());
+  if (snap.metadata.fromCache) throw new Error('オフラインのため取り込み状況を確認できません');
+  return new Set(snap.exists() ? (snap.data().files || []) : []);
+}
+
+// ファイル名をトランザクションで記録し、この端末が取り込む分（他の端末で未記録のもの）を返す
+function claimImportFiles(names) {
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(importsRef());
+    const done = snap.exists() ? (snap.data().files || []) : [];
+    const mine = names.filter((n) => !done.includes(n));
+    if (mine.length) tx.set(importsRef(), { files: [...done, ...mine], updatedAt: Date.now() }, { merge: true });
+    return mine;
+  });
+}
+
+// fromMenu：⚙メニューから実行した場合（結果が0件でも知らせる）
+async function checkImports(fromMenu = false) {
+  if (!uid || !state.loaded || importsBusy || migrating) return;
+  if (!fromMenu && Date.now() - importsLastAt < 10000) return;   // 短時間の連続確認を避ける
+  if (!navigator.onLine) { if (fromMenu) toast('オフラインのため確認できません'); return; }
+  importsBusy = true;
+  importsLastAt = Date.now();
+  const myUid = uid;
+  try {
+    let index;
+    try {
+      index = await fetchImportJSON('index.json');
+    } catch (err) {
+      if (err.status === 404) index = { files: [] }; else throw err;
+    }
+    const listed = (Array.isArray(index?.files) ? index.files : [])
+      .filter((n) => typeof n === 'string' && IMPORT_FILE_RE.test(n) && n !== 'index.json');
+    const done = await importedFileSet();
+    const pending = [...new Set(listed)].filter((n) => !done.has(n));
+    if (uid !== myUid) return;
+
+    const files = [];
+    const bad = [];
+    for (const name of pending) {
+      try {
+        const data = await fetchImportJSON(name);
+        if (data?.app !== 'sake-collection' || !Array.isArray(data.bottles) || !data.bottles.length) throw new Error('形式が不正です');
+        files.push({ name, bottles: data.bottles });
+      } catch (err) {
+        console.warn(`imports/${name}`, err);
+        // 404 は公開の反映待ちの可能性があるので次回に回す
+        if (err.status !== 404) bad.push(name);
+      }
+    }
+    if (bad.length) toast(`読み込めない登録データがあります：${bad.join('、')}`);
+    if (!files.length) { if (fromMenu && !bad.length) toast('新しい登録データはありません'); return; }
+
+    await waitAskClosed();
+    if (uid !== myUid) return;
+    const bottles = files.flatMap((f) => f.bottles);
+    const lines = bottles.slice(0, 8).map((b) => `・${String(b?.name || '（名称未設定）')}${isValidYMD(b?.purchaseDate) ? `（${b.purchaseDate}）` : ''}`);
+    if (bottles.length > 8) lines.push(`ほか${bottles.length - 8}件`);
+    const v = await ask({
+      title: '新しい登録データ',
+      message: `新しい登録データが${bottles.length}件あります。\n\n${lines.join('\n')}\n\nNo. は続きから採番されます。`,
+      buttons: [{ label: '後で', value: '' }, { label: '取り込む', value: 'ok', kind: 'primary' }],
+    });
+    if (v !== 'ok' || uid !== myUid) return;
+
+    const mine = await claimImportFiles(files.map((f) => f.name));
+    const targets = files.filter((f) => mine.includes(f.name));
+    if (!targets.length) { toast('他の端末で取り込み済みです'); return; }
+    const prepared = targets.flatMap((f) => f.bottles.map((raw) => ({
+      rec: { ...normalizeBottle(raw || {}), isSample: false, sampleNo: null },
+      photos: [],
+    })));
+    // 既存のインポートの「追加」と同じ扱い（No. は続きから）
+    writePrepared(prepared);
+    toast(`${prepared.length}件を取り込みました`);
+  } catch (err) {
+    console.error(err);
+    if (fromMenu) toast('登録データを確認できませんでした：' + errText(err));
+  } finally {
+    importsBusy = false;
+  }
+}
+
+/* =========================================================
    ログイン／ログアウト
    ========================================================= */
 const AUTH_ERRORS = {
@@ -2179,6 +2296,7 @@ function onAuthChanged(user) {
   Object.assign(sync, { pendingWrites: false, fromCache: true });
   photoDataCache.clear();
   migrationChecked = false;
+  importsChecked = false;
   uid = user ? user.uid : null;
   document.body.dataset.auth = user ? 'in' : 'out';
   if (user) {
@@ -2291,6 +2409,7 @@ function setupEvents() {
       'delete-samples': deleteSamples,
       'delete-all': deleteAll,
       'migrate': () => checkLegacyMigration(true),
+      'check-imports': () => checkImports(true),
       'logout': logout,
     })[btn.dataset.action]();
   });
@@ -2309,6 +2428,11 @@ function setupEvents() {
 
   // 通信状態の変化を同期表示に反映
   window.addEventListener('online', () => { markConnecting(); renderSync(); });
+
+  // アプリを開き直したとき（前面に戻ったとき）に新しい登録データを確認
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') checkImports();
+  });
   window.addEventListener('offline', renderSync);
 
   // 画面幅が変わったらグラフを描き直す
