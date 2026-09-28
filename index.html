@@ -645,7 +645,7 @@ const db = initializeFirestore(fbApp, {
 /* =========================================================
    定数
    ========================================================= */
-const CATEGORIES = ['ウイスキー', '日本酒', '焼酎', 'ワイン', 'ビール', 'ラム', 'ジン', 'ウォッカ', 'テキーラ', 'ブランデー', 'リキュール', 'その他'];
+const CATEGORIES = ['ウイスキー', 'バーボン', '日本酒', '焼酎', 'ワイン', 'ビール', 'ラム', 'ジン', 'ウォッカ', 'テキーラ', 'ブランデー', 'リキュール', 'その他'];
 const STATUSES = ['未開栓', '開栓済み', '飲み切り'];
 const PHOTO_LABELS = ['ボトル正面', 'ラベル裏', 'その他'];
 const MAX_PHOTOS = 3;
@@ -671,6 +671,7 @@ const SORT_OPTIONS = [
 const LS_THEME = 'sakeCollection.theme';
 const LS_VIEW = 'sakeCollection.view';
 const LS_MIGRATE = 'sakeCollection.migrate.';   // + uid（'done' | 'never'）
+const LS_BOURBON = 'sakeCollection.bourbon.';   // + uid（'declined'：種別「バーボン」への変換を断った）
 
 /* =========================================================
    小さなユーティリティ
@@ -850,6 +851,7 @@ function subscribe() {
       if (!snap.metadata.hasPendingWrites) fixDuplicateNumbers();
       checkLegacyMigration();
       if (!importsChecked) { importsChecked = true; checkImports(); }
+      if (!bourbonChecked) { bourbonChecked = true; checkBourbonCategory(); }
     }
   }, onListenError));
   unsubs.push(onSnapshot(counterRef(), (snap) => {
@@ -1282,8 +1284,15 @@ function setupViewer() {
    汎用の確認ダイアログ
    buttons: [{ label, value, kind: 'primary' | 'danger' }]
    戻り値：押したボタンの value（閉じた場合は ''）
+   複数の確認が同時に呼ばれた場合は、前の確認が閉じてから順に表示する
    ========================================================= */
-function ask({ title, message, buttons }) {
+let askQueue = Promise.resolve();
+function ask(opts) {
+  const run = askQueue.then(() => showAsk(opts));
+  askQueue = run.catch(() => {});
+  return run;
+}
+function showAsk({ title, message, buttons }) {
   const dlg = $('#askDialog');
   $('#askTitle').textContent = title;
   $('#askMessage').textContent = message;
@@ -2243,6 +2252,42 @@ async function checkImports(fromMenu = false) {
 }
 
 /* =========================================================
+   種別「バーボン」の追加に伴う既存記録の変換
+   種別「ウイスキー」でサブ種別がバーボン／テネシーウイスキーの記録を「バーボン」に変更する
+   （サブ種別が「バーボン」だけの場合は種別と重なるので空欄にする）
+   ========================================================= */
+let bourbonChecked = false;   // ログインごとに1回だけ確認する
+const isBourbonSub = (s) => /バーボン|bourbon/i.test(s || '');
+const isTennesseeSub = (s) => /テネシー|tennessee/i.test(s || '');
+const bourbonTargets = () => state.bottles.filter((b) =>
+  b.category === 'ウイスキー' && (isBourbonSub(b.subCategory) || isTennesseeSub(b.subCategory)));
+
+async function checkBourbonCategory() {
+  if (!uid || lsGet(LS_BOURBON + uid)) return;
+  if (!bourbonTargets().length) return;
+  const myUid = uid;
+  const shown = bourbonTargets().sort((a, b) => SORT_VALUE.no(a) - SORT_VALUE.no(b));
+  const lines = shown.slice(0, 8).map((b) => `・${b.name}（${b.subCategory}）`);
+  if (shown.length > 8) lines.push(`ほか${shown.length - 8}件`);
+  const v = await ask({
+    title: '種別「バーボン」への変更',
+    message: `種別に「バーボン」を追加しました。\nサブ種別がバーボン・テネシーウイスキーの記録が${shown.length}件あります。種別を「バーボン」に変更しますか？\n\n${lines.join('\n')}\n\n※ サブ種別が「バーボン」のものは空欄にします。`,
+    buttons: [{ label: '変更しない', value: 'no' }, { label: '変更する', value: 'ok', kind: 'primary' }],
+  });
+  if (uid !== myUid) return;
+  if (v === 'no') { lsSet(LS_BOURBON + uid, 'declined'); return; }
+  if (v !== 'ok') return;   // 閉じた場合は次回また確認する
+  const targets = bourbonTargets();   // 確認中に他の端末で変わった場合に備えて取り直す
+  const now = Date.now();
+  commitOps(targets.map((b) => (batch) => batch.update(bottleRef(b.id), {
+    category: 'バーボン',
+    subCategory: /^\s*(バーボン|bourbon)\s*$/i.test(b.subCategory) ? '' : b.subCategory,
+    updatedAt: now,
+  })));
+  toast(`${targets.length}件の種別を「バーボン」に変更しました`);
+}
+
+/* =========================================================
    ログイン／ログアウト
    ========================================================= */
 const AUTH_ERRORS = {
@@ -2297,6 +2342,7 @@ function onAuthChanged(user) {
   photoDataCache.clear();
   migrationChecked = false;
   importsChecked = false;
+  bourbonChecked = false;
   uid = user ? user.uid : null;
   document.body.dataset.auth = user ? 'in' : 'out';
   if (user) {
