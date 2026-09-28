@@ -43,13 +43,15 @@ for (const name of files) {
     if ('no' in b) be('no は付けないでください');
     if (!Array.isArray(b.photos) || b.photos.length) be('photos は空配列にしてください');
     if (!b.name || typeof b.name !== 'string') be('name がありません');
-    if (!YMD_RE.test(b.purchaseDate || '')) be('purchaseDate は YYYY-MM-DD にしてください');
+    // 購入日が不明なら省略可（アプリの取り込み日で登録される）
+    if (b.purchaseDate !== undefined && !YMD_RE.test(b.purchaseDate)) be('purchaseDate は YYYY-MM-DD にしてください（不明なら項目ごと省略）');
     if (!CATEGORIES.includes(b.category)) be(`category「${b.category}」は ${CATEGORIES.join('／')} のいずれかにしてください`);
     if (!STATUSES.includes(b.status)) be(`status「${b.status}」は ${STATUSES.join('／')} のいずれかにしてください`);
     if (b.country && !COUNTRIES.includes(b.country)) warns.push(`${name}: bottles[${i}] country「${b.country}」は DEFAULT_COUNTRIES にない表記です（意図どおりか確認）`);
-    for (const k of ['volumeMl', 'abv', 'priceTHB']) if (!isNum(b[k])) be(`${k} は数値（または null）にしてください`);
+    // 空欄の項目は省略してよい（アプリ側で空欄として扱う）。値がある場合は型をチェック
+    for (const k of ['volumeMl', 'abv', 'priceTHB']) if (b[k] !== undefined && !isNum(b[k])) be(`${k} は数値（または null）にしてください`);
     if (!(Number.isInteger(b.rating) && b.rating >= 0 && b.rating <= 5)) be('rating は 0〜5 の整数にしてください');
-    for (const k of ['brand', 'subCategory', 'country', 'region', 'shop', 'memo']) if (typeof b[k] !== 'string') be(`${k} は文字列にしてください`);
+    for (const k of ['brand', 'subCategory', 'country', 'region', 'shop', 'memo']) if (b[k] !== undefined && typeof b[k] !== 'string') be(`${k} は文字列にしてください`);
   });
 }
 for (const f of fs.readdirSync(dir)) {
