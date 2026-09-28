@@ -30,6 +30,9 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
+  // 登録データ（imports/）は常にネットワークから最新を取得する（キャッシュしない）
+  if (url.origin === self.location.origin && url.pathname.includes('/imports/')) return;
+
   // Firebase SDK：キャッシュ優先
   if (url.href.startsWith(SDK_BASE)) {
     e.respondWith(caches.match(req.url).then((hit) => hit || fetch(req).then((res) => {
