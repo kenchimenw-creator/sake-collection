@@ -1,0 +1,21 @@
+{
+  "app": "sake-collection",
+  "version": 1,
+  "source": "claude-code",
+  "createdAt": "2026-09-28T22:22:00+07:00",
+  "bottles": [
+    {
+      "name": "X ONE",
+      "brand": "Merai Pattana",
+      "category": "ウイスキー",
+      "country": "日本",
+      "volumeMl": 700,
+      "abv": 35,
+      "priceTHB": 350,
+      "status": "未開栓",
+      "rating": 0,
+      "memo": "タイの Merai Pattana 社が販売する日本産ウイスキー。タイでは1本300〜400バーツ前後で売られている、手頃な価格帯の銘柄。",
+      "photos": []
+    }
+  ]
+}
