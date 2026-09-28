@@ -94,8 +94,10 @@
 }
 ```
 
-- 数値項目（`volumeMl`・`abv`・`priceTHB`）は数値。わからない場合は `null`
-- 文字列項目（`brand`・`subCategory`・`country`・`region`・`shop`・`memo`）は、わからなければ空文字 `""`
+- 数値項目（`volumeMl`・`abv`・`priceTHB`）は数値。わからない場合は `null`（または項目ごと省略）
+- 文字列項目（`brand`・`subCategory`・`country`・`region`・`shop`・`memo`）は、わからなければ空文字 `""`（または項目ごと省略）
+- 購入日が不明な場合は `purchaseDate` を省略する（アプリの取り込み日で登録される）
+- 1ファイルに複数本をまとめてもよい（ユーザーの指示がある場合）。No. は `bottles` の並び順に振られる
 
 ### 取り込み済みファイルの片付け
 
