@@ -31,6 +31,9 @@
 ### 使ってよい値（index.html の定数に合わせる）
 
 - `category` は `CATEGORIES`、`status` は `STATUSES` の値のみ使用する
+  - バーボンは `category` を「バーボン」にする（「ウイスキー」にしない）。`subCategory` は空欄、またはストレート・スモールバッチなどの区分
+  - テネシーウイスキー（ジャックダニエルなど）も `category` は「バーボン」、`subCategory` は「テネシーウイスキー」
+  - それ以外のアメリカンウイスキー（ライ・コーンなど）は「ウイスキー」
 - `country` は `DEFAULT_COUNTRIES` の表記に合わせる（スコッチは「スコットランド」、バーボンは「アメリカ」など）
 - 最新の値は index.html で確認する：
   `grep -nE "^const (CATEGORIES|STATUSES|DEFAULT_COUNTRIES) =" index.html`
