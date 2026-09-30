@@ -1,18 +1,21 @@
 // imports/ の登録データを検証する（Claude Code が作成後に実行する）
 //   node tools/check-imports.mjs
-// index.html の CATEGORIES・STATUSES・DEFAULT_COUNTRIES を読み取り、
+// index.html の TAXONOMY（種別／大分類／小分類）・STATUSES・DEFAULT_COUNTRIES を読み取り、
 // imports/index.json と各ファイルの形式・値をチェックする。エラーがあれば終了コード 1
 import fs from 'node:fs';
 import path from 'node:path';
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const readConst = (name) => {
-  const m = new RegExp(`const ${name} = (\\[[^\\]]*\\]);`).exec(html);
+const readConst = (name, multiline = false) => {
+  const re = multiline ? new RegExp(`const ${name} = (\\[[\\s\\S]*?\\n\\]);`) : new RegExp(`const ${name} = (\\[[^\\]]*\\]);`);
+  const m = re.exec(html);
   if (!m) throw new Error(`index.html に ${name} が見つかりません`);
   return Function(`return ${m[1]};`)();
 };
-const CATEGORIES = readConst('CATEGORIES');
+const TAXONOMY = readConst('TAXONOMY', true);
+const CATEGORIES = TAXONOMY.map((c) => c.name);
+const groupsOf = (cat) => (TAXONOMY.find((c) => c.name === cat)?.groups || []).map(([g]) => g);
 const STATUSES = readConst('STATUSES');
 const COUNTRIES = readConst('DEFAULT_COUNTRIES');
 
@@ -36,22 +39,37 @@ for (const name of files) {
   let data;
   try { data = JSON.parse(fs.readFileSync(p, 'utf8')); } catch (err) { e(`JSON として読めません（${err.message}）`); continue; }
   if (data.app !== 'sake-collection') e('app は "sake-collection" にしてください');
-  if (data.version !== 1) e('version は 1 にしてください');
+  if (![1, 2].includes(data.version)) e('version は 2（旧形式は 1）にしてください');
   if (!Array.isArray(data.bottles) || !data.bottles.length) { e('bottles が空です'); continue; }
   data.bottles.forEach((b, i) => {
     const be = (msg) => e(`bottles[${i}] ${msg}`);
+    const bw = (msg) => warns.push(`${name}: bottles[${i}] ${msg}`);
     if ('no' in b) be('no は付けないでください');
     if (!Array.isArray(b.photos) || b.photos.length) be('photos は空配列にしてください');
     if (!b.name || typeof b.name !== 'string') be('name がありません');
     // 購入日が不明なら省略可（アプリの取り込み日で登録される）
     if (b.purchaseDate !== undefined && !YMD_RE.test(b.purchaseDate)) be('purchaseDate は YYYY-MM-DD にしてください（不明なら項目ごと省略）');
-    if (!CATEGORIES.includes(b.category)) be(`category「${b.category}」は ${CATEGORIES.join('／')} のいずれかにしてください`);
+    if (b.category === 'バーボン') {
+      bw('category「バーボン」は旧形式です（アプリが「ウイスキー／バーボン」に変換します）。category: "ウイスキー", group: "バーボン" で書いてください');
+    } else if (!CATEGORIES.includes(b.category)) {
+      be(`category「${b.category}」は ${CATEGORIES.join('／')} のいずれかにしてください`);
+    }
+    // 大分類：種別ごとの一覧の値のみ（空欄・省略は可）
+    if (b.group !== undefined && b.group !== '') {
+      const cat = b.category === 'バーボン' ? 'ウイスキー' : b.category;
+      if (!groupsOf(cat).includes(b.group)) be(`group「${b.group}」は「${cat}」の大分類（${groupsOf(cat).join('／')}）のいずれかにしてください`);
+    }
+    if (b.style !== undefined && typeof b.style !== 'string') be('style は文字列にしてください');
+    if (b.subCategory !== undefined) {
+      if (b.group !== undefined || b.style !== undefined) be('subCategory（旧形式）と group／style を同時に使わないでください');
+      else bw('subCategory は旧形式です（アプリが自動で大分類・小分類に変換します）。group・style で書いてください');
+    }
     if (!STATUSES.includes(b.status)) be(`status「${b.status}」は ${STATUSES.join('／')} のいずれかにしてください`);
-    if (b.country && !COUNTRIES.includes(b.country)) warns.push(`${name}: bottles[${i}] country「${b.country}」は DEFAULT_COUNTRIES にない表記です（意図どおりか確認）`);
+    if (b.country && !COUNTRIES.includes(b.country)) bw(`country「${b.country}」は DEFAULT_COUNTRIES にない表記です（意図どおりか確認）`);
     // 空欄の項目は省略してよい（アプリ側で空欄として扱う）。値がある場合は型をチェック
     for (const k of ['volumeMl', 'abv', 'priceTHB']) if (b[k] !== undefined && !isNum(b[k])) be(`${k} は数値（または null）にしてください`);
     if (!(Number.isInteger(b.rating) && b.rating >= 0 && b.rating <= 5)) be('rating は 0〜5 の整数にしてください');
-    for (const k of ['brand', 'subCategory', 'country', 'region', 'shop', 'memo']) if (b[k] !== undefined && typeof b[k] !== 'string') be(`${k} は文字列にしてください`);
+    for (const k of ['brand', 'country', 'region', 'shop', 'memo']) if (b[k] !== undefined && typeof b[k] !== 'string') be(`${k} は文字列にしてください`);
   });
 }
 for (const f of fs.readdirSync(dir)) {

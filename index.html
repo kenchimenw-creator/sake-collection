@@ -28,6 +28,8 @@
   --bar: #a67c34;
   --grid: #e8dcc8;
   --danger: #a3372b;
+  --warn: #8a6400;
+  --ok: #2e7d5b;
   --shadow: 0 1px 2px rgba(43, 29, 20, .06), 0 4px 14px rgba(43, 29, 20, .07);
   --radius: 12px;
   --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "BIZ UDPMincho", serif;
@@ -39,7 +41,7 @@
   :root:not([data-theme="light"]) {
     --bg: #15100b; --surface: #1f1710; --surface-2: #2a1f16; --text: #f1e6d4; --text-2: #c9b69b;
     --muted: #8f7c67; --border: #3a2c20; --accent: #d9b56c; --accent-contrast: #1f1710;
-    --brand: #0f0a07; --brand-text: #e0c07e; --bar: #c9a45c; --grid: #33271c; --danger: #e0786b;
+    --brand: #0f0a07; --brand-text: #e0c07e; --bar: #c9a45c; --grid: #33271c; --danger: #e0786b; --warn: #e3c35a; --ok: #7fc4a0;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
     color-scheme: dark;
   }
@@ -48,7 +50,7 @@
 :root[data-theme="dark"] {
   --bg: #15100b; --surface: #1f1710; --surface-2: #2a1f16; --text: #f1e6d4; --text-2: #c9b69b;
   --muted: #8f7c67; --border: #3a2c20; --accent: #d9b56c; --accent-contrast: #1f1710;
-  --brand: #0f0a07; --brand-text: #e0c07e; --bar: #c9a45c; --grid: #33271c; --danger: #e0786b;
+  --brand: #0f0a07; --brand-text: #e0c07e; --bar: #c9a45c; --grid: #33271c; --danger: #e0786b; --warn: #e3c35a; --ok: #7fc4a0;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
   color-scheme: dark;
 }
@@ -338,6 +340,45 @@ textarea { min-height: 90px; resize: vertical; }
 .mini-table th:first-child, .mini-table td:first-child { text-align: left; }
 .mini-table th { color: var(--text-2); font-weight: 600; font-size: 12px; }
 
+/* ===== 分類（種別／大分類／小分類） ===== */
+.flag { display: inline-block; font-size: 10px; padding: 0 7px; border-radius: 999px; line-height: 17px; white-space: nowrap; font-weight: 600; }
+.flag.blank { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); }
+.flag.check { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
+.flag.hint { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+.legacy-line { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* 分類の移行画面 */
+#taxDialog { max-width: min(1000px, calc(100vw - 24px)); max-height: 94vh; }
+#taxDialog .wrap { display: flex; flex-direction: column; max-height: calc(94vh - 2px); }
+#taxDialog .dlg-body { overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+.tax-intro { font-size: 13px; color: var(--text-2); margin: 0 0 10px; }
+.tax-summary { font-size: 13px; color: var(--text-2); margin-bottom: 12px; display: flex; gap: 8px 14px; flex-wrap: wrap; align-items: center; }
+.tax-summary label { display: inline-flex; align-items: center; gap: 6px; }
+.tax-list { display: flex; flex-direction: column; gap: 10px; }
+.tax-row { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--surface); }
+.tax-row.is-blank { border-color: color-mix(in srgb, var(--danger) 55%, var(--border)); background: color-mix(in srgb, var(--danger) 5%, var(--surface)); }
+.tax-row.is-check { border-color: color-mix(in srgb, var(--warn) 55%, var(--border)); background: color-mix(in srgb, var(--warn) 6%, var(--surface)); }
+.tax-row.is-hint { border-color: color-mix(in srgb, var(--ok) 45%, var(--border)); }
+.tax-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-bottom: 4px; }
+.tax-head strong { font-family: var(--serif); font-size: 15px; }
+.tax-head .no { font-size: 12px; color: var(--muted); }
+.tax-meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.tax-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.tax-fields label { display: block; font-size: 11px; color: var(--text-2); margin-bottom: 2px; }
+.tax-fields .blank select { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 8%, var(--surface)); }
+
+/* 集計表：種別をタップで大分類の内訳 */
+.mini-table tr.cat-row { cursor: pointer; }
+.mini-table tr.cat-row:hover td { background: color-mix(in srgb, var(--gold) 9%, transparent); }
+.mini-table tr.cat-row td:first-child::before { content: '▸ '; color: var(--muted); }
+.mini-table tr.cat-row.open td:first-child::before { content: '▾ '; }
+.mini-table tr.grp-row td { color: var(--text-2); font-size: 12px; background: var(--surface-2); }
+.mini-table tr.grp-row td:first-child { padding-left: 24px; }
+
+/* 言語切替 */
+.auth-lang { text-align: center; }
+.linkbtn { background: none; border: 0; color: var(--accent); text-decoration: underline; font-size: 13px; padding: 4px; }
+
 /* ===== 起動中・ログイン画面 ===== */
 body:not([data-auth="in"]) :is(.app-header, .tabs, main) { display: none; }
 body:not([data-auth="out"]) #authScreen { display: none; }
@@ -388,6 +429,9 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
   #editDialog form { max-height: 100dvh; height: 100%; }
   #editDialog .dlg-body { flex: 1; }
   .kpi .value { font-size: 23px; }
+  dialog#taxDialog { max-width: 100vw; max-height: 100dvh; height: 100dvh; margin: 0; border-radius: 0; border: 0; }
+  #taxDialog .wrap { max-height: 100dvh; height: 100%; }
+  .tax-fields { grid-template-columns: 1fr 1fr; }
 }
 </style>
 </head>
@@ -395,21 +439,37 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
 
 <!-- ===== 起動中 ===== -->
 <div class="boot" id="bootScreen"><div id="bootMsg">読み込み中…</div></div>
+<script>
+// 起動中の表示と、Firebase SDK（CDN）の読み込みに失敗した場合の案内（こちらは通常のスクリプト）
+(function () {
+  var en = false;
+  try { en = localStorage.getItem('sakeCollection.lang') === 'en'; } catch (e) { /* 保存領域が使えない */ }
+  if (en) { document.documentElement.lang = 'en'; document.getElementById('bootMsg').textContent = 'Loading…'; }
+  setTimeout(function () {
+    if (window.__sakeAppReady) return;
+    var el = document.getElementById('bootMsg');
+    if (el) el.innerHTML = en
+      ? 'Loading is taking longer than usual.<br>Please reload where the connection is better.<br><button type="button" class="btn" onclick="location.reload()">Reload</button>'
+      : '読み込みに時間がかかっています。<br>電波の良い場所で再読み込みしてください。<br><button type="button" class="btn" onclick="location.reload()">再読み込み</button>';
+  }, 15000);
+})();
+</script>
 
 <!-- ===== ログイン画面 ===== -->
 <section class="auth" id="authScreen">
   <form class="auth-card" id="loginForm" novalidate>
     <div class="auth-head">
       <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><path d="M27 6h10v13c0 3 8 6 8 15v22c0 2-1 3-3 3H22c-2 0-3-1-3-3V34c0-9 8-12 8-15z" fill="currentColor"/></svg>
-      <h1>お酒コレクション</h1>
+      <h1 data-i18n="appTitle">お酒コレクション</h1>
       <small>MY BOTTLE LOG</small>
     </div>
     <div class="auth-body">
-      <p class="auth-note">ログインすると、スマートフォンとPCでデータが同期されます。</p>
-      <div class="field"><label for="loginEmail">メールアドレス</label><input type="email" id="loginEmail" autocomplete="username" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" required></div>
-      <div class="field"><label for="loginPass">パスワード</label><input type="password" id="loginPass" autocomplete="current-password" required></div>
+      <p class="auth-note" data-i18n="loginNote">ログインすると、スマートフォンとPCでデータが同期されます。</p>
+      <div class="field"><label for="loginEmail" data-i18n="email">メールアドレス</label><input type="email" id="loginEmail" autocomplete="username" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" required></div>
+      <div class="field"><label for="loginPass" data-i18n="password">パスワード</label><input type="password" id="loginPass" autocomplete="current-password" required></div>
       <div class="error-msg" id="loginErr" hidden></div>
-      <button type="submit" class="btn primary" id="loginBtn">ログイン</button>
+      <button type="submit" class="btn primary" id="loginBtn" data-i18n="login">ログイン</button>
+      <div class="auth-lang"><button type="button" class="linkbtn" data-action="lang" data-i18n="langSwitch">English</button></div>
     </div>
   </form>
 </section>
@@ -419,35 +479,39 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
   <div class="brand">
     <h1 class="app-title">
       <svg width="22" height="22" viewBox="0 0 64 64" aria-hidden="true"><path d="M27 6h10v13c0 3 8 6 8 15v22c0 2-1 3-3 3H22c-2 0-3-1-3-3V34c0-9 8-12 8-15z" fill="currentColor"/></svg>
-      お酒コレクション <small>MY BOTTLE LOG</small>
+      <span data-i18n="appTitle">お酒コレクション</span> <small>MY BOTTLE LOG</small>
     </h1>
-    <span class="sync" id="syncBadge" data-state="syncing" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span class="txt">同期中</span></span>
+    <span class="sync" id="syncBadge" data-state="syncing" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span class="txt"></span></span>
   </div>
-  <button class="hbtn primary" id="addBtn" type="button">＋<span class="lbl">新規追加</span></button>
-  <button class="hbtn" id="themeBtn" type="button" title="ライト／ダーク切替" aria-label="ライト／ダーク切替">☀</button>
+  <button class="hbtn primary" id="addBtn" type="button">＋<span class="lbl" data-i18n="add">新規追加</span></button>
+  <button class="hbtn" id="themeBtn" type="button" data-i18n-title="themeToggle" data-i18n-aria="themeToggle">☀</button>
   <div class="menu-wrap">
-    <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false" title="メニュー" aria-label="メニュー">⚙</button>
+    <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false" data-i18n-title="menu" data-i18n-aria="menu">⚙</button>
     <div class="menu" id="menu" hidden>
-      <div class="menu-label">アカウント</div>
+      <div class="menu-label" data-i18n="mAccount">アカウント</div>
       <div class="menu-account" id="accountEmail"></div>
-      <button type="button" data-action="logout">ログアウト</button>
+      <button type="button" data-action="logout" data-i18n="logout">ログアウト</button>
       <hr>
-      <div class="menu-label">バックアップ</div>
-      <button type="button" data-action="export-json">JSONエクスポート（写真含む）</button>
-      <button type="button" data-action="import-json">JSONインポート</button>
-      <button type="button" data-action="export-csv">CSVエクスポート（写真なし）</button>
+      <div class="menu-label" data-i18n="mLanguage">表示言語</div>
+      <button type="button" data-action="lang" data-i18n="langSwitch">English</button>
       <hr>
-      <div class="menu-label">サンプルデータ</div>
-      <button type="button" data-action="add-samples">サンプルデータを投入（5件）</button>
-      <button type="button" data-action="delete-samples">サンプルのみ削除</button>
+      <div class="menu-label" data-i18n="mBackup">バックアップ</div>
+      <button type="button" data-action="export-json" data-i18n="exportJson">JSONエクスポート（写真含む）</button>
+      <button type="button" data-action="import-json" data-i18n="importJson">JSONインポート</button>
+      <button type="button" data-action="export-csv" data-i18n="exportCsv">CSVエクスポート（写真なし）</button>
       <hr>
-      <div class="menu-label">登録データ（imports）</div>
-      <button type="button" data-action="check-imports">新しい登録データを確認</button>
+      <div class="menu-label" data-i18n="mSamples">サンプルデータ</div>
+      <button type="button" data-action="add-samples" data-i18n="addSamples">サンプルデータを投入（5件）</button>
+      <button type="button" data-action="delete-samples" data-i18n="deleteSamples">サンプルのみ削除</button>
       <hr>
-      <div class="menu-label">以前のデータ</div>
-      <button type="button" data-action="migrate">この端末のデータをクラウドへ移行</button>
+      <div class="menu-label" data-i18n="mImports">登録データ（imports）</div>
+      <button type="button" data-action="check-imports" data-i18n="checkImports">新しい登録データを確認</button>
       <hr>
-      <button type="button" data-action="delete-all" class="danger">全データを削除</button>
+      <div class="menu-label" data-i18n="mMaintenance">データの整理</div>
+      <button type="button" data-action="taxonomy" data-i18n="openTaxonomy">分類の移行（3階層）</button>
+      <button type="button" data-action="migrate" data-i18n="migrateLocal">この端末のデータをクラウドへ移行</button>
+      <hr>
+      <button type="button" data-action="delete-all" class="danger" data-i18n="deleteAll">全データを削除</button>
     </div>
   </div>
   <input type="file" id="importFile" accept="application/json,.json" hidden>
@@ -455,22 +519,23 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
 
 <!-- ===== タブ ===== -->
 <nav class="tabs" role="tablist">
-  <button class="tab" role="tab" data-tab="list" aria-selected="true">一覧</button>
-  <button class="tab" role="tab" data-tab="stats" aria-selected="false">集計</button>
+  <button class="tab" role="tab" data-tab="list" aria-selected="true" data-i18n="tabList">一覧</button>
+  <button class="tab" role="tab" data-tab="stats" aria-selected="false" data-i18n="tabStats">集計</button>
 </nav>
 
 <main>
   <!-- 一覧タブ -->
   <section id="listTab">
     <div class="toolbar">
-      <div class="search"><input type="search" id="q" placeholder="銘柄名・ブランド・メモで検索" aria-label="キーワード検索"></div>
-      <select id="fCategory" aria-label="種別で絞り込み"></select>
-      <select id="fCountry" aria-label="原産国で絞り込み"></select>
-      <select id="fStatus" aria-label="状態で絞り込み"></select>
-      <select id="sortSel" aria-label="並べ替え"></select>
-      <div class="seg" role="group" aria-label="表示切替">
-        <button type="button" data-view="table" aria-pressed="false" title="テーブル表示">☰ 表</button>
-        <button type="button" data-view="card" aria-pressed="false" title="カード表示">▦ カード</button>
+      <div class="search"><input type="search" id="q" data-i18n-ph="searchPh" data-i18n-aria="search"></div>
+      <select id="fCategory" data-i18n-aria="fCategory"></select>
+      <select id="fGroup" data-i18n-aria="fGroup"></select>
+      <select id="fCountry" data-i18n-aria="fCountry"></select>
+      <select id="fStatus" data-i18n-aria="fStatus"></select>
+      <select id="sortSel" data-i18n-aria="sort"></select>
+      <div class="seg" role="group" data-i18n-aria="viewToggle">
+        <button type="button" data-view="table" aria-pressed="false" data-i18n="viewTable">☰ 表</button>
+        <button type="button" data-view="card" aria-pressed="false" data-i18n="viewCard">▦ カード</button>
       </div>
     </div>
     <p class="list-summary" id="listSummary"></p>
@@ -482,28 +547,28 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
     <div class="kpis" id="kpis"></div>
     <div class="panels">
       <div class="panel wide">
-        <h2>月別の購入金額</h2>
-        <p class="desc">直近12か月（THB）。棒にカーソルを合わせると詳細を表示します。</p>
+        <h2 data-i18n="stMonthly">月別の購入金額</h2>
+        <p class="desc" data-i18n="stMonthlyDesc">直近12か月（THB）。棒にカーソルを合わせると詳細を表示します。</p>
         <div class="chart" id="chartMonthly"></div>
       </div>
       <div class="panel">
-        <h2>種別ごとの本数</h2>
-        <p class="desc">本数の多い順</p>
+        <h2 data-i18n="stCatCount">種別ごとの本数</h2>
+        <p class="desc" data-i18n="stCatCountDesc">本数の多い順</p>
         <div class="chart" id="chartCatCount"></div>
       </div>
       <div class="panel">
-        <h2>種別ごとの金額</h2>
-        <p class="desc">合計金額（THB）の多い順</p>
+        <h2 data-i18n="stCatAmount">種別ごとの金額</h2>
+        <p class="desc" data-i18n="stCatAmountDesc">合計金額（THB）の多い順</p>
         <div class="chart" id="chartCatAmount"></div>
       </div>
       <div class="panel">
-        <h2>原産国ごとの本数</h2>
-        <p class="desc">上位10か国（それ以外は「その他」に集約）</p>
+        <h2 data-i18n="stCountry">原産国ごとの本数</h2>
+        <p class="desc" data-i18n="stCountryDesc">上位10か国（それ以外は「その他」に集約）</p>
         <div class="chart" id="chartCountry"></div>
       </div>
       <div class="panel">
-        <h2>種別ごとの集計表</h2>
-        <p class="desc">本数・合計金額・平均単価</p>
+        <h2 data-i18n="stCatTable">種別ごとの本数と金額</h2>
+        <p class="desc" data-i18n="stCatTableDesc">種別をタップすると大分類ごとの内訳を表示します</p>
         <div id="catTable"></div>
       </div>
     </div>
@@ -514,48 +579,49 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
 <dialog id="editDialog" aria-labelledby="editTitle">
   <form id="editForm" novalidate>
     <div class="dlg-head">
-      <h2 id="editTitle">新規追加</h2>
-      <button type="button" class="icon-btn" data-close aria-label="閉じる">×</button>
+      <h2 id="editTitle"></h2>
+      <button type="button" class="icon-btn" data-close data-i18n-aria="close">×</button>
     </div>
     <div class="dlg-body">
       <fieldset>
-        <legend>基本情報</legend>
+        <legend data-i18n="lgBasic">基本情報</legend>
         <div class="grid">
           <div class="field"><label>No.</label><div class="calc num" id="fNo">—</div></div>
-          <div class="field"><label>週番号（自動）</label><div class="calc" id="fWeek">—</div></div>
-          <div class="field"><label for="fDate">購入日<span class="req">*</span></label><input type="date" id="fDate" required></div>
-          <div class="field"><label for="fStatusIn">状態</label><select id="fStatusIn"></select></div>
-          <div class="field full"><label for="fName">銘柄名<span class="req">*</span></label><input type="text" id="fName" required autocomplete="off"><div class="error-msg" id="nameErr" hidden>銘柄名を入力してください</div></div>
-          <div class="field full"><label for="fBrand">ブランド／蒸留所・醸造所</label><input type="text" id="fBrand" list="dlBrand" autocomplete="off"></div>
-          <div class="field"><label for="fCat">種別</label><select id="fCat"></select></div>
-          <div class="field"><label for="fSub">サブ種別</label><input type="text" id="fSub" list="dlSub" placeholder="例：シングルモルト" autocomplete="off"></div>
+          <div class="field"><label data-i18n="weekAuto">週番号（自動）</label><div class="calc" id="fWeek">—</div></div>
+          <div class="field"><label for="fDate"><span data-i18n="purchaseDate">購入日</span><span class="req">*</span></label><input type="date" id="fDate" required></div>
+          <div class="field"><label for="fStatusIn" data-i18n="status">状態</label><select id="fStatusIn"></select></div>
+          <div class="field full"><label for="fName"><span data-i18n="name">銘柄名</span><span class="req">*</span></label><input type="text" id="fName" required autocomplete="off"><div class="error-msg" id="nameErr" hidden data-i18n="nameRequired">銘柄名を入力してください</div></div>
+          <div class="field full"><label for="fBrand" data-i18n="brand">ブランド／蒸留所・醸造所</label><input type="text" id="fBrand" list="dlBrand" autocomplete="off"></div>
+          <div class="field"><label for="fCat" data-i18n="category">種別</label><select id="fCat"></select></div>
+          <div class="field"><label for="fGroupIn" data-i18n="group">大分類</label><select id="fGroupIn"></select></div>
+          <div class="field full"><label for="fStyle" data-i18n="style">小分類</label><input type="text" id="fStyle" list="dlStyle" autocomplete="off" data-i18n-ph="stylePh"><div class="legacy-line" id="fLegacy" hidden></div></div>
         </div>
       </fieldset>
       <fieldset>
-        <legend>詳細</legend>
+        <legend data-i18n="lgDetail">詳細</legend>
         <div class="grid">
-          <div class="field"><label for="fCountryIn">原産国</label><input type="text" id="fCountryIn" list="dlCountry" autocomplete="off"></div>
-          <div class="field"><label for="fRegion">産地・地域</label><input type="text" id="fRegion" autocomplete="off"></div>
-          <div class="field"><label for="fVol">内容量</label><div class="with-unit"><input type="number" id="fVol" min="0" step="1" inputmode="numeric"><span>ml</span></div></div>
-          <div class="field"><label for="fAbv">アルコール度数</label><div class="with-unit"><input type="number" id="fAbv" min="0" max="100" step="0.1" inputmode="decimal"><span>%</span></div></div>
-          <div class="field"><label for="fPrice">購入金額</label><div class="with-unit"><input type="text" id="fPrice" inputmode="decimal" autocomplete="off"><span>THB</span></div></div>
-          <div class="field"><label>100mlあたり単価（自動）</label><div class="calc num" id="fUnit">—</div></div>
-          <div class="field full"><label for="fShop">購入店</label><input type="text" id="fShop" list="dlShop" autocomplete="off"></div>
+          <div class="field"><label for="fCountryIn" data-i18n="country">原産国</label><input type="text" id="fCountryIn" list="dlCountry" autocomplete="off"></div>
+          <div class="field"><label for="fRegion" data-i18n="region">産地・地域</label><input type="text" id="fRegion" autocomplete="off"></div>
+          <div class="field"><label for="fVol" data-i18n="volume">内容量</label><div class="with-unit"><input type="number" id="fVol" min="0" step="1" inputmode="numeric"><span>ml</span></div></div>
+          <div class="field"><label for="fAbv" data-i18n="abv">アルコール度数</label><div class="with-unit"><input type="number" id="fAbv" min="0" max="100" step="0.1" inputmode="decimal"><span>%</span></div></div>
+          <div class="field"><label for="fPrice" data-i18n="price">購入金額</label><div class="with-unit"><input type="text" id="fPrice" inputmode="decimal" autocomplete="off"><span>THB</span></div></div>
+          <div class="field"><label data-i18n="unitAuto">100mlあたり単価（自動）</label><div class="calc num" id="fUnit">—</div></div>
+          <div class="field full"><label for="fShop" data-i18n="shop">購入店</label><input type="text" id="fShop" list="dlShop" autocomplete="off"></div>
         </div>
       </fieldset>
       <fieldset>
-        <legend>評価・メモ</legend>
+        <legend data-i18n="lgRating">評価・メモ</legend>
         <div class="field">
-          <label>評価</label>
+          <label data-i18n="rating">評価</label>
           <div class="rating-input" id="ratingInput"></div>
         </div>
-        <div class="field" style="margin-top:10px"><label for="fMemo">メモ</label><textarea id="fMemo" rows="4"></textarea></div>
+        <div class="field" style="margin-top:10px"><label for="fMemo" data-i18n="memo">メモ</label><textarea id="fMemo" rows="4"></textarea></div>
       </fieldset>
       <fieldset>
-        <legend>写真（最大3枚）</legend>
+        <legend data-i18n="lgPhotos">写真（最大3枚）</legend>
         <div class="photo-area" id="photoArea">
           <div class="photo-slots" id="photoSlots"></div>
-          <div class="photo-hint">ここに画像をドラッグ＆ドロップしても追加できます。◀ ▶ で並べ替え（1枚目が一覧のサムネイルになります）。</div>
+          <div class="photo-hint" data-i18n="photoHint">ここに画像をドラッグ＆ドロップしても追加できます。◀ ▶ で並べ替え（1枚目が一覧のサムネイルになります）。</div>
         </div>
         <input type="file" id="fileCamera" accept="image/*" capture="environment" hidden>
         <input type="file" id="filePick" accept="image/*" multiple hidden>
@@ -563,23 +629,42 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
       <p class="meta-line" id="metaLine"></p>
     </div>
     <div class="dlg-foot">
-      <button type="button" class="btn danger spacer" id="deleteBtn">削除</button>
-      <button type="button" class="btn" data-close>キャンセル</button>
-      <button type="submit" class="btn primary" id="saveBtn">保存</button>
+      <button type="button" class="btn danger spacer" id="deleteBtn" data-i18n="delete">削除</button>
+      <button type="button" class="btn" data-close data-i18n="cancel">キャンセル</button>
+      <button type="submit" class="btn primary" id="saveBtn" data-i18n="save">保存</button>
     </div>
   </form>
+</dialog>
+
+<!-- ===== 分類の移行（旧：種別＋サブ種別 → 新：種別／大分類／小分類） ===== -->
+<dialog id="taxDialog" aria-labelledby="taxTitle">
+  <div class="wrap">
+    <div class="dlg-head">
+      <h2 id="taxTitle" data-i18n="taxTitle">分類の移行</h2>
+    </div>
+    <div class="dlg-body">
+      <p class="tax-intro" data-i18n="taxIntro"></p>
+      <div class="tax-summary" id="taxSummary"></div>
+      <div class="tax-list" id="taxList"></div>
+      <div id="taxDatalists"></div>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn spacer" id="taxLater" data-i18n="later">後で</button>
+      <button type="button" class="btn primary" id="taxConfirm" data-i18n="confirm">確定</button>
+    </div>
+  </div>
 </dialog>
 
 <!-- ===== 写真ビューア ===== -->
 <dialog id="viewerDialog" aria-labelledby="viewerTitle">
   <div class="dlg-head">
     <h2 id="viewerTitle"></h2>
-    <button type="button" class="icon-btn" data-close aria-label="閉じる">×</button>
+    <button type="button" class="icon-btn" data-close data-i18n-aria="close">×</button>
   </div>
   <div class="viewer-stage" id="viewerStage">
     <img id="viewerImg" alt="">
-    <button type="button" class="viewer-nav prev" id="viewerPrev" aria-label="前の写真">‹</button>
-    <button type="button" class="viewer-nav next" id="viewerNext" aria-label="次の写真">›</button>
+    <button type="button" class="viewer-nav prev" id="viewerPrev" data-i18n-aria="prevPhoto">‹</button>
+    <button type="button" class="viewer-nav next" id="viewerNext" data-i18n-aria="nextPhoto">›</button>
   </div>
   <div class="viewer-caption" id="viewerCaption"></div>
 </dialog>
@@ -595,19 +680,11 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
 
 <datalist id="dlCountry"></datalist>
 <datalist id="dlBrand"></datalist>
-<datalist id="dlSub"></datalist>
+<datalist id="dlStyle"></datalist>
 <datalist id="dlShop"></datalist>
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script>
-// Firebase SDK（CDN）の読み込みに失敗した場合の案内（こちらは通常のスクリプト）
-setTimeout(function () {
-  if (window.__sakeAppReady) return;
-  var el = document.getElementById('bootMsg');
-  if (el) el.innerHTML = '読み込みに時間がかかっています。<br>電波の良い場所で再読み込みしてください。<br><button type="button" class="btn" onclick="location.reload()">再読み込み</button>';
-}, 15000);
-</script>
 <script type="module">
 /* =========================================================
    Firebase（モジュラー版 SDK を gstatic の CDN から読み込む）
@@ -620,7 +697,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
 import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
-  collection, doc, onSnapshot, getDoc, getDocFromCache, writeBatch, runTransaction,
+  collection, doc, onSnapshot, getDoc, getDocFromCache, writeBatch, runTransaction, deleteField,
 } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 window.__sakeAppReady = true;
@@ -643,9 +720,45 @@ const db = initializeFirestore(fbApp, {
 });
 
 /* =========================================================
+   分類体系：種別（category）→ 大分類（group）→ 小分類（style）
+   ・保存する値は日本語（name）。英語表示は en を使う
+   ・styles は小分類の入力候補（自由入力も可）
+   ・tools/check-imports.mjs もこの定義を読み取るため、値はリテラルのみで書く
+   ========================================================= */
+const TAXONOMY = [
+  { name: 'ウイスキー', en: 'Whisky',
+    groups: [['スコッチ', 'Scotch'], ['バーボン', 'Bourbon'], ['テネシー', 'Tennessee'], ['アイリッシュ', 'Irish'], ['ジャパニーズ', 'Japanese'],
+      ['カナディアン', 'Canadian'], ['タイウイスキー', 'Thai Whisky'], ['その他ウイスキー', 'Other Whisky']],
+    styles: [['シングルモルト', 'Single Malt'], ['ブレンデッドモルト', 'Blended Malt'], ['ブレンデッド', 'Blended'], ['グレーン', 'Grain'],
+      ['ストレート', 'Straight'], ['グレーン＆モルト', 'Grain & Malt'], ['タイ ブレンデッドスピリッツ', 'Thai Blended Spirit']] },
+  { name: 'ブランデー', en: 'Brandy',
+    groups: [['コニャック', 'Cognac'], ['アルマニャック', 'Armagnac'], ['フレンチブランデー', 'French Brandy'], ['タイブランデー', 'Thai Brandy'], ['その他ブランデー', 'Other Brandy']],
+    styles: [['VS', 'VS'], ['V.S.O.P.', 'V.S.O.P.'], ['XO', 'XO'], ['グレープブランデー', 'Grape Brandy']] },
+  { name: 'ラム', en: 'Rum',
+    groups: [['ホワイトラム', 'White Rum'], ['ゴールドラム', 'Gold Rum'], ['ダークラム', 'Dark Rum'], ['スパイスドラム', 'Spiced Rum'], ['エイジドラム', 'Aged Rum'], ['その他ラム', 'Other Rum']],
+    styles: [] },
+  { name: 'ジン', en: 'Gin', groups: [['ロンドンドライ', 'London Dry'], ['クラフトジン', 'Craft Gin'], ['その他ジン', 'Other Gin']], styles: [] },
+  { name: 'ウォッカ', en: 'Vodka', groups: [['プレーン', 'Plain'], ['フレーバード', 'Flavored']], styles: [] },
+  { name: 'テキーラ', en: 'Tequila', groups: [['ブランコ', 'Blanco'], ['レポサド', 'Reposado'], ['アネホ', 'Añejo'], ['メスカル', 'Mezcal']], styles: [] },
+  { name: 'リキュール', en: 'Liqueur',
+    groups: [['ハーブ系', 'Herbal'], ['フルーツ系', 'Fruit'], ['ウイスキーリキュール', 'Whisky Liqueur'], ['クリーム系', 'Cream'], ['その他リキュール', 'Other Liqueur']],
+    styles: [] },
+  { name: '焼酎', en: 'Shochu', groups: [['芋', 'Sweet Potato'], ['麦', 'Barley'], ['米', 'Rice'], ['黒糖', 'Brown Sugar'], ['その他焼酎', 'Other Shochu']], styles: [] },
+  { name: '泡盛', en: 'Awamori', groups: [['一般酒', 'Regular'], ['古酒', 'Kusu (Aged)']], styles: [] },
+  { name: '日本酒', en: 'Sake', groups: [['純米', 'Junmai'], ['本醸造', 'Honjozo'], ['吟醸・大吟醸', 'Ginjo / Daiginjo'], ['その他日本酒', 'Other Sake']], styles: [] },
+  { name: 'ビール', en: 'Beer', groups: [['ラガー', 'Lager'], ['エール', 'Ale'], ['その他ビール', 'Other Beer']], styles: [] },
+  { name: 'ワイン', en: 'Wine', groups: [['赤', 'Red'], ['白', 'White'], ['ロゼ', 'Rosé'], ['スパークリング', 'Sparkling'], ['その他ワイン', 'Other Wine']], styles: [] },
+  { name: '中国酒', en: 'Chinese Spirits', groups: [['白酒', 'Baijiu'], ['紹興酒・黄酒', 'Shaoxing / Huangjiu'], ['その他中国酒', 'Other Chinese']], styles: [] },
+  { name: 'その他', en: 'Other', groups: [['タイ地酒・クラフトスピリッツ', 'Thai Local / Craft Spirits'], ['その他', 'Other']], styles: [] },
+];
+const CATEGORIES = TAXONOMY.map((c) => c.name);
+const taxOf = (cat) => TAXONOMY.find((c) => c.name === cat) || null;
+const groupsOf = (cat) => (taxOf(cat)?.groups || []).map(([g]) => g);
+const stylesOf = (cat) => (taxOf(cat)?.styles || []).map(([s]) => s);
+
+/* =========================================================
    定数
    ========================================================= */
-const CATEGORIES = ['ウイスキー', 'バーボン', '日本酒', '焼酎', 'ワイン', 'ビール', 'ラム', 'ジン', 'ウォッカ', 'テキーラ', 'ブランデー', 'リキュール', 'その他'];
 const STATUSES = ['未開栓', '開栓済み', '飲み切り'];
 const PHOTO_LABELS = ['ボトル正面', 'ラベル裏', 'その他'];
 const MAX_PHOTOS = 3;
@@ -655,23 +768,228 @@ const PHOTO_MAX_BYTES = 900 * 1024;             // 写真1枚（Base64）の上�
 const THUMB_MAX_SIDE = 360;    // サムネイル：長辺px（一覧用に軽量化）
 const THUMB_QUALITY = 0.7;
 const BATCH_LIMIT = 400;       // 1回の一括書き込みの件数上限（Firestore の上限は500）
-const DEFAULT_COUNTRIES = ['日本', 'スコットランド', 'アイルランド', 'アメリカ', 'カナダ', 'イギリス', 'フランス', 'イタリア', 'スペイン', 'ポルトガル', 'ドイツ', 'オランダ', 'ベルギー', 'メキシコ', 'キューバ', 'ジャマイカ', 'タイ', '台湾', '韓国', '中国', 'インド', 'オーストラリア', 'ニュージーランド', 'チリ', 'アルゼンチン', '南アフリカ', 'ロシア', 'ポーランド'];
-const SORT_OPTIONS = [
-  ['purchaseDate:desc', '購入日（新しい順）'],
-  ['purchaseDate:asc', '購入日（古い順）'],
-  ['no:desc', 'No.（大きい順）'],
-  ['no:asc', 'No.（小さい順）'],
-  ['priceTHB:desc', '金額（高い順）'],
-  ['priceTHB:asc', '金額（安い順）'],
-  ['unitPrice:desc', '100ml単価（高い順）'],
-  ['rating:desc', '評価（高い順）'],
-  ['abv:desc', '度数（高い順）'],
-  ['name:asc', '銘柄名（五十音順）'],
-];
+const DEFAULT_COUNTRIES = ['日本', 'スコットランド', 'アイルランド', 'アメリカ', 'カナダ', 'イギリス', 'フランス', 'イタリア', 'スペイン', 'ポルトガル', 'ドイツ', 'オランダ', 'ベルギー', 'メキシコ', 'キューバ', 'ジャマイカ', 'タイ', 'フィリピン', '台湾', '韓国', '中国', 'インド', 'オーストラリア', 'ニュージーランド', 'チリ', 'アルゼンチン', '南アフリカ', 'ロシア', 'ポーランド'];
+const COUNTRY_EN = {
+  '日本': 'Japan', 'スコットランド': 'Scotland', 'アイルランド': 'Ireland', 'アメリカ': 'USA', 'カナダ': 'Canada', 'イギリス': 'UK',
+  'フランス': 'France', 'イタリア': 'Italy', 'スペイン': 'Spain', 'ポルトガル': 'Portugal', 'ドイツ': 'Germany', 'オランダ': 'Netherlands',
+  'ベルギー': 'Belgium', 'メキシコ': 'Mexico', 'キューバ': 'Cuba', 'ジャマイカ': 'Jamaica', 'タイ': 'Thailand', 'フィリピン': 'Philippines',
+  '台湾': 'Taiwan', '韓国': 'South Korea', '中国': 'China', 'インド': 'India', 'オーストラリア': 'Australia', 'ニュージーランド': 'New Zealand',
+  'チリ': 'Chile', 'アルゼンチン': 'Argentina', '南アフリカ': 'South Africa', 'ロシア': 'Russia', 'ポーランド': 'Poland',
+};
+const SORT_KEYS = ['purchaseDate:desc', 'purchaseDate:asc', 'no:desc', 'no:asc', 'priceTHB:desc', 'priceTHB:asc', 'unitPrice:desc', 'rating:desc', 'abv:desc', 'name:asc', 'category:asc'];
 const LS_THEME = 'sakeCollection.theme';
 const LS_VIEW = 'sakeCollection.view';
+const LS_LANG = 'sakeCollection.lang';
 const LS_MIGRATE = 'sakeCollection.migrate.';   // + uid（'done' | 'never'）
-const LS_BOURBON = 'sakeCollection.bourbon.';   // + uid（'declined'：種別「バーボン」への変換を断った）
+
+/* =========================================================
+   表示言語（日本語／English）
+   ・画面の文言は t('キー')、保存値（種別・状態・国名など）の表示は tv(値) で切り替える
+   ・保存する値は常に日本語（端末ごとに言語が違っても同じデータを共有できる）
+   ========================================================= */
+const I18N = {
+  ja: {
+    appTitle: 'お酒コレクション', loading: '読み込み中…',
+    loginNote: 'ログインすると、スマートフォンとPCでデータが同期されます。', email: 'メールアドレス', password: 'パスワード',
+    login: 'ログイン', loggingIn: 'ログイン中…', loginEmpty: 'メールアドレスとパスワードを入力してください',
+    loginFailed: 'ログインできませんでした（{code}）', langSwitch: 'English',
+    authInvalidEmail: 'メールアドレスの形式が正しくありません', authInvalidCred: 'メールアドレスまたはパスワードが違います',
+    authDisabled: 'このアカウントは無効になっています', authTooMany: 'ログインの試行回数が多すぎます。しばらく待ってからお試しください',
+    authNetwork: '通信できませんでした。電波の良い場所でお試しください',
+    add: '新規追加', themeToggle: 'ライト／ダーク切替', menu: 'メニュー', close: '閉じる',
+    mAccount: 'アカウント', logout: 'ログアウト', mLanguage: '表示言語', mBackup: 'バックアップ',
+    exportJson: 'JSONエクスポート（写真含む）', importJson: 'JSONインポート', exportCsv: 'CSVエクスポート（写真なし）',
+    mSamples: 'サンプルデータ', addSamples: 'サンプルデータを投入（5件）', deleteSamples: 'サンプルのみ削除',
+    mImports: '登録データ（imports）', checkImports: '新しい登録データを確認',
+    mMaintenance: 'データの整理', openTaxonomy: '分類の移行（3階層）', migrateLocal: 'この端末のデータをクラウドへ移行',
+    deleteAll: '全データを削除', tabList: '一覧', tabStats: '集計',
+    searchPh: '銘柄名・ブランド・メモで検索', search: 'キーワード検索',
+    fCategory: '種別で絞り込み', fGroup: '大分類で絞り込み', fCountry: '原産国で絞り込み', fStatus: '状態で絞り込み', sort: '並べ替え',
+    viewToggle: '表示切替', viewTable: '☰ 表', viewCard: '▦ カード',
+    all: '{label}：すべて', sortByHeader: '（表の見出しで指定）',
+    sort_purchaseDate_desc: '購入日（新しい順）', sort_purchaseDate_asc: '購入日（古い順）', sort_no_desc: 'No.（大きい順）', sort_no_asc: 'No.（小さい順）',
+    sort_priceTHB_desc: '金額（高い順）', sort_priceTHB_asc: '金額（安い順）', sort_unitPrice_desc: '100ml単価（高い順）',
+    sort_rating_desc: '評価（高い順）', sort_abv_desc: '度数（高い順）', sort_name_asc: '銘柄名（五十音順）', sort_category_asc: '種別・大分類順',
+    syncSynced: '同期済み', syncSyncing: '同期中', syncOffline: 'オフライン', syncOfflinePending: 'オフライン（未送信あり）', syncOfflineTip: '電波が戻ると自動で同期されます',
+    loadingData: 'データを読み込んでいます…', emptyTitle: 'まだ記録がありません',
+    emptyBody: '「＋新規追加」から1本目を登録しましょう。<br>動作を試したいときはサンプルデータを投入できます。',
+    emptyAdd: '＋ 新規追加', emptySamples: 'サンプルデータを投入', noMatchTitle: '該当する記録がありません', noMatchBody: '検索語や絞り込み条件を変えてみてください。',
+    summary: '全{all}本{samples}中 {shown}本を表示 ・ 表示中の合計 {total}', summarySamples: '（うちサンプル{n}本）',
+    colPhoto: '写真', colDate: '購入日', colWeek: '週', colName: '銘柄名', colCategory: '分類', colCountry: '原産国', colVolume: '容量',
+    colAbv: '度数', colPrice: '金額', colUnit: '100ml単価', colStatus: '状態', colRating: '評価',
+    sample: 'サンプル', noPhoto: '写真未登録', zoomPhoto: '写真を拡大', week: '第{n}週', unrated: '未評価', ratingOf: '評価 {n}',
+    photoLoading: '読み込み中…', photoMissing: '（写真が見つかりません）', photoOffline: '（オフラインのため縮小画像を表示中）',
+    prevPhoto: '前の写真', nextPhoto: '次の写真',
+    editTitleNew: '新規追加', editTitleEdit: '記録を編集', noPending: '{n}（保存時に確定）',
+    lgBasic: '基本情報', weekAuto: '週番号（自動）', purchaseDate: '購入日', status: '状態', name: '銘柄名', nameRequired: '銘柄名を入力してください',
+    brand: 'ブランド／蒸留所・醸造所', category: '種別', group: '大分類', style: '小分類', stylePh: '例：シングルモルト（候補から選ぶか自由入力）',
+    groupNone: '（未選択）', legacyLine: '旧サブ種別：{v}',
+    lgDetail: '詳細', country: '原産国', region: '産地・地域', volume: '内容量', abv: 'アルコール度数', price: '購入金額', unitAuto: '100mlあたり単価（自動）', shop: '購入店',
+    lgRating: '評価・メモ', rating: '評価', memo: 'メモ', stars: '{n}つ星',
+    lgPhotos: '写真（最大3枚）', photoHint: 'ここに画像をドラッグ＆ドロップしても追加できます。◀ ▶ で並べ替え（1枚目が一覧のサムネイルになります）。',
+    processing: '処理中…', takePhoto: '📷 撮影', pickPhoto: '🖼 選択', orDrop: 'またはドロップ', moveBack: '前へ移動', moveNext: '後ろへ移動',
+    delete: '削除', cancel: 'キャンセル', save: '保存',
+    metaLine: '登録：{c} ／ 更新：{u}', metaSample: ' ／ サンプルデータ',
+    maxPhotos: '写真は最大3枚までです', maxPhotosTrim: '写真は最大3枚までのため、先頭の{n}枚を追加します', badImage: 'この画像は読み込めませんでした（対応形式：JPEG / PNG など）',
+    badDate: '購入日を正しく入力してください', photoBusy: '写真の処理が終わるまでお待ちください', deletedElsewhere: 'この記録は別の端末で削除されました',
+    updated: '更新しました', registered: 'No.{n} を登録しました', syncLater: '{msg}（電波が戻ると同期されます）',
+    delTitle: '記録の削除', delBody: '「{name}」（No.{no}）を削除します。\n写真も一緒に削除され、元に戻せません。', deleteIt: '削除する', deleted: '削除しました',
+    saveFailed: 'クラウドへの保存に失敗しました：{e}', noPermission: '権限がありません（ログインし直してください）',
+    listenDenied: 'データを読み込む権限がありません（Firestore のルールをご確認ください）', listenFailed: 'データの読み込みに失敗しました：{e}',
+    dupFixed: 'No. の重複を修正しました（{list}）',
+    kTotal: '合計本数', kAmount: '合計金額', kAvg: '平均単価（1本あたり）', kAvg100: '平均単価（100mlあたり）',
+    bottles: '{n}本', inclSamples: 'サンプル{n}本を含む', avgOf: '金額入力済み {n}本の平均', avgRating: '平均評価 {v}',
+    stMonthly: '月別の購入金額', stMonthlyDesc: '直近12か月（THB）。棒にカーソルを合わせると詳細を表示します。',
+    stCatCount: '種別ごとの本数', stCatCountDesc: '本数の多い順', stCatAmount: '種別ごとの金額', stCatAmountDesc: '合計金額（THB）の多い順',
+    stCountry: '原産国ごとの本数', stCountryDesc: '上位10か国（それ以外は「その他」に集約）',
+    stCatTable: '種別ごとの本数と金額', stCatTableDesc: '種別をタップすると大分類ごとの内訳を表示します',
+    thCategory: '種別', thCount: '本数', thAmount: '合計金額', thAvg: '平均単価', noData: 'データがありません', noMonthly: '直近12か月の購入データがありません',
+    unset: '未分類', notEntered: '未入力', others: 'その他', monthLabel: '{m}月', monthTip: '{y}年{m}月：{amount}（{n}本）', barChart: '横棒グラフ',
+    exportNone: 'エクスポートするデータがありません', exportPreparing: 'エクスポートを準備しています…（写真をダウンロード中）',
+    exportMissingTitle: '写真を取得できませんでした', exportMissingBody: '{n}枚の写真を取得できませんでした（オフラインの可能性があります）。\nその写真を含めずにエクスポートしますか？',
+    exportAnyway: 'エクスポートする', exported: '{n}件をエクスポートしました', csvExported: '{n}件をCSVに出力しました',
+    importBadJson: 'JSONファイルを読み込めませんでした', importNotOurs: 'このアプリのバックアップファイルではないようです',
+    importModeTitle: 'インポート方法の選択',
+    importModeBody: '{n}件のデータが見つかりました。\n\n「上書き」…現在のデータをすべて削除して置き換えます。\n「追加」…現在のデータを残したまま追加します（No.は続きから振り直します）。',
+    append: '追加', overwrite: '上書き', overwriteTitle: '上書きの確認', overwriteBody: '現在の{n}件は削除されます。よろしいですか？', overwriteIt: '上書きする',
+    importing: 'インポート中…（写真が多いと時間がかかります）', importingN: 'インポート中… {i} / {n}件', imported: '{n}件をインポートしました', importFailed: 'インポートに失敗しました：{e}',
+    samplesTitle: 'サンプルデータ', samplesExist: 'サンプルが既に{n}件あります。入れ直しますか？', reinsert: '入れ直す', samplesAdded: 'サンプルデータを5件投入しました',
+    noSamples: 'サンプルデータはありません', delSamplesTitle: 'サンプルのみ削除', delSamplesBody: 'サンプルデータ{n}件を削除します。\n実データは削除されません。', samplesDeleted: 'サンプルデータを削除しました',
+    nothingToDelete: '削除するデータがありません', delAllTitle: '全データを削除', delAllBody: '登録済みの{n}件と写真をすべて削除します。\n削除前にJSONエクスポートでバックアップを取ることをおすすめします。',
+    next: '次へ', finalTitle: '最終確認', finalBody: '本当にすべて削除しますか？この操作は元に戻せません。\n（No.の採番も1からやり直しになります）', deleteAllIt: 'すべて削除', allDeleted: 'すべてのデータを削除しました',
+    sampleImage: 'サンプル画像', sampleImageBack: 'サンプル画像（裏）',
+    noLocal: 'この端末に以前のデータはありません', localTitle: 'クラウドへ移行しますか？',
+    localBody: 'この端末に以前のデータが{n}件{samples}あります。\nクラウドへ移行すると、スマートフォンとPCで同期されるようになります。\n\n端末内のデータは削除されずに残ります。{again}',
+    localSamples: '（うちサンプル{n}件）', localAgain: '\n\n※ この端末のデータは既に移行済みです。もう一度移行すると同じ記録が重複します。',
+    neverShow: '今後表示しない', notNow: '今はしない', migrateIt: '移行する', laterFromMenu: 'あとで ⚙メニューから移行できます',
+    localFailed: '移行に失敗しました：{e}', localPreparing: '移行の準備中…（写真を変換しています）', localPreparingN: '移行の準備中… {i} / {n}件',
+    localDone: '{n}件をクラウドへ移行しました{skipped}', localSkipped: '（読み込めない写真{n}枚を除く）',
+    offlineCantCheck: 'オフラインのため確認できません', importsOfflineState: 'オフラインのため取り込み状況を確認できません', badFormat: '形式が不正です',
+    importsBad: '読み込めない登録データがあります：{list}', importsNone: '新しい登録データはありません', importsTitle: '新しい登録データ',
+    importsBody: '新しい登録データが{n}件あります。\n\n{lines}\n\nNo. は続きから採番されます。', andMore: 'ほか{n}件', unnamed: '（名称未設定）',
+    later: '後で', importIt: '取り込む', importsElsewhere: '他の端末で取り込み済みです', importsDone: '{n}件を取り込みました', importsCheckFailed: '登録データを確認できませんでした：{e}',
+    logoutBody: '{email} からログアウトしますか？', logoutPending: '\n\nまだクラウドに送信されていない変更があります。次に同じアカウントでログインしたときに送信されます。',
+    taxTitle: '分類の移行', confirm: '確定',
+    taxIntro: '分類を「種別 → 大分類 → 小分類」の3階層に変更しました。登録済みの記録を自動で振り分けた案です。内容を確認・修正してから［確定］を押してください。旧サブ種別の値は削除せず「旧サブ種別」として残します。',
+    taxCount: '{n}件', taxBlank: '空欄 {n}件', taxCheck: '要確認 {n}件', taxHint: '調査結果 {n}件', taxOnlyAttention: '確認が必要なものだけ表示',
+    flagBlank: '空欄', flagCheck: '要確認', flagHint: '調査結果', legacyLabel: '旧サブ種別', noneValue: '（なし）',
+    taxNone: '移行が必要な記録はありません', taxDone: '{n}件の分類を更新しました', taxConfirmBlank: '大分類が空欄の記録が{n}件あります。このまま確定しますか？（あとで編集画面から設定できます）',
+    taxConfirmIt: '確定する', taxLaterToast: 'あとで ⚙メニューの「分類の移行」から開けます',
+    csvSample: '○',
+  },
+  en: {
+    appTitle: 'Bottle Collection', loading: 'Loading…',
+    loginNote: 'Sign in to sync your data between your phone and PC.', email: 'Email', password: 'Password',
+    login: 'Sign in', loggingIn: 'Signing in…', loginEmpty: 'Please enter your email and password',
+    loginFailed: 'Could not sign in ({code})', langSwitch: '日本語',
+    authInvalidEmail: 'The email address is not valid', authInvalidCred: 'Incorrect email or password',
+    authDisabled: 'This account has been disabled', authTooMany: 'Too many attempts. Please wait a while and try again',
+    authNetwork: 'Could not connect. Please try again where the connection is better',
+    add: 'Add', themeToggle: 'Light / dark mode', menu: 'Menu', close: 'Close',
+    mAccount: 'Account', logout: 'Sign out', mLanguage: 'Language', mBackup: 'Backup',
+    exportJson: 'Export JSON (with photos)', importJson: 'Import JSON', exportCsv: 'Export CSV (no photos)',
+    mSamples: 'Sample data', addSamples: 'Add sample data (5)', deleteSamples: 'Delete samples only',
+    mImports: 'Registration data (imports)', checkImports: 'Check for new registration data',
+    mMaintenance: 'Maintenance', openTaxonomy: 'Classification migration (3 levels)', migrateLocal: 'Move this device’s data to the cloud',
+    deleteAll: 'Delete all data', tabList: 'List', tabStats: 'Stats',
+    searchPh: 'Search name, brand, memo', search: 'Keyword search',
+    fCategory: 'Filter by type', fGroup: 'Filter by class', fCountry: 'Filter by country', fStatus: 'Filter by status', sort: 'Sort',
+    viewToggle: 'View', viewTable: '☰ Table', viewCard: '▦ Cards',
+    all: '{label}: All', sortByHeader: '(set from table header)',
+    sort_purchaseDate_desc: 'Purchase date (newest)', sort_purchaseDate_asc: 'Purchase date (oldest)', sort_no_desc: 'No. (high to low)', sort_no_asc: 'No. (low to high)',
+    sort_priceTHB_desc: 'Price (high to low)', sort_priceTHB_asc: 'Price (low to high)', sort_unitPrice_desc: 'Price per 100ml (high to low)',
+    sort_rating_desc: 'Rating (high to low)', sort_abv_desc: 'ABV (high to low)', sort_name_asc: 'Name (A–Z)', sort_category_asc: 'Type & class',
+    syncSynced: 'Synced', syncSyncing: 'Syncing', syncOffline: 'Offline', syncOfflinePending: 'Offline (unsent changes)', syncOfflineTip: 'Changes will sync automatically when you are back online',
+    loadingData: 'Loading data…', emptyTitle: 'No bottles yet',
+    emptyBody: 'Tap “＋ Add” to register your first bottle.<br>You can also add sample data to try things out.',
+    emptyAdd: '＋ Add', emptySamples: 'Add sample data', noMatchTitle: 'No matching bottles', noMatchBody: 'Try a different keyword or filter.',
+    summary: 'Showing {shown} of {all}{samples} ・ Total shown {total}', summarySamples: ' (incl. {n} samples)',
+    colPhoto: 'Photo', colDate: 'Purchased', colWeek: 'Week', colName: 'Name', colCategory: 'Classification', colCountry: 'Country', colVolume: 'Volume',
+    colAbv: 'ABV', colPrice: 'Price', colUnit: 'Per 100ml', colStatus: 'Status', colRating: 'Rating',
+    sample: 'Sample', noPhoto: 'No photo', zoomPhoto: 'Enlarge photo', week: 'Wk {n}', unrated: 'Not rated', ratingOf: 'Rating {n}',
+    photoLoading: 'Loading…', photoMissing: '(photo not found)', photoOffline: '(offline – showing thumbnail)',
+    prevPhoto: 'Previous photo', nextPhoto: 'Next photo',
+    editTitleNew: 'Add bottle', editTitleEdit: 'Edit bottle', noPending: '{n} (assigned on save)',
+    lgBasic: 'Basics', weekAuto: 'Week (auto)', purchaseDate: 'Purchase date', status: 'Status', name: 'Name', nameRequired: 'Please enter a name',
+    brand: 'Brand / distillery / brewery', category: 'Type', group: 'Class', style: 'Style', stylePh: 'e.g. Single Malt (pick or type)',
+    groupNone: '(not set)', legacyLine: 'Old sub-type: {v}',
+    lgDetail: 'Details', country: 'Country', region: 'Region', volume: 'Volume', abv: 'ABV', price: 'Price', unitAuto: 'Price per 100ml (auto)', shop: 'Shop',
+    lgRating: 'Rating & memo', rating: 'Rating', memo: 'Memo', stars: '{n} stars',
+    lgPhotos: 'Photos (up to 3)', photoHint: 'You can also drag & drop images here. Use ◀ ▶ to reorder (the first photo is the list thumbnail).',
+    processing: 'Processing…', takePhoto: '📷 Camera', pickPhoto: '🖼 Choose', orDrop: 'or drop here', moveBack: 'Move left', moveNext: 'Move right',
+    delete: 'Delete', cancel: 'Cancel', save: 'Save',
+    metaLine: 'Created: {c} / Updated: {u}', metaSample: ' / Sample data',
+    maxPhotos: 'Up to 3 photos', maxPhotosTrim: 'Up to 3 photos – adding the first {n}', badImage: 'This image could not be read (JPEG / PNG etc. are supported)',
+    badDate: 'Please enter a valid purchase date', photoBusy: 'Please wait until the photos are processed', deletedElsewhere: 'This bottle was deleted on another device',
+    updated: 'Updated', registered: 'Registered No.{n}', syncLater: '{msg} (will sync when back online)',
+    delTitle: 'Delete bottle', delBody: 'Delete “{name}” (No.{no})?\nIts photos will also be deleted. This cannot be undone.', deleteIt: 'Delete', deleted: 'Deleted',
+    saveFailed: 'Could not save to the cloud: {e}', noPermission: 'Permission denied (please sign in again)',
+    listenDenied: 'No permission to read data (check your Firestore rules)', listenFailed: 'Could not load data: {e}',
+    dupFixed: 'Fixed duplicate numbers ({list})',
+    kTotal: 'Bottles', kAmount: 'Total spent', kAvg: 'Average per bottle', kAvg100: 'Average per 100ml',
+    bottles: '{n}', inclSamples: 'Includes {n} samples', avgOf: 'Average of {n} priced bottles', avgRating: 'Average rating {v}',
+    stMonthly: 'Spending by month', stMonthlyDesc: 'Last 12 months (THB). Hover over a bar for details.',
+    stCatCount: 'Bottles by type', stCatCountDesc: 'Most bottles first', stCatAmount: 'Spending by type', stCatAmountDesc: 'Highest total (THB) first',
+    stCountry: 'Bottles by country', stCountryDesc: 'Top 10 countries (others grouped)',
+    stCatTable: 'Bottles and spending by type', stCatTableDesc: 'Tap a type to see the breakdown by class',
+    thCategory: 'Type', thCount: 'Bottles', thAmount: 'Total', thAvg: 'Average', noData: 'No data', noMonthly: 'No purchases in the last 12 months',
+    unset: 'Unclassified', notEntered: 'Not entered', others: 'Others', monthLabel: '{mon}', monthTip: '{mon} {y}: {amount} ({n} bottles)', barChart: 'Bar chart',
+    exportNone: 'No data to export', exportPreparing: 'Preparing export… (downloading photos)',
+    exportMissingTitle: 'Some photos could not be loaded', exportMissingBody: '{n} photos could not be loaded (you may be offline).\nExport without them?',
+    exportAnyway: 'Export', exported: 'Exported {n} bottles', csvExported: 'Exported {n} bottles to CSV',
+    importBadJson: 'Could not read the JSON file', importNotOurs: 'This does not look like a backup from this app',
+    importModeTitle: 'Import mode',
+    importModeBody: '{n} bottles found.\n\n“Overwrite” – delete all current data and replace it.\n“Append” – keep current data and add these (numbers continue from the current ones).',
+    append: 'Append', overwrite: 'Overwrite', overwriteTitle: 'Confirm overwrite', overwriteBody: 'The current {n} bottles will be deleted. Continue?', overwriteIt: 'Overwrite',
+    importing: 'Importing… (may take a while with many photos)', importingN: 'Importing… {i} / {n}', imported: 'Imported {n} bottles', importFailed: 'Import failed: {e}',
+    samplesTitle: 'Sample data', samplesExist: '{n} samples already exist. Replace them?', reinsert: 'Replace', samplesAdded: 'Added 5 samples',
+    noSamples: 'There is no sample data', delSamplesTitle: 'Delete samples only', delSamplesBody: 'Delete {n} sample bottles?\nYour real data will not be deleted.', samplesDeleted: 'Samples deleted',
+    nothingToDelete: 'Nothing to delete', delAllTitle: 'Delete all data', delAllBody: 'All {n} bottles and photos will be deleted.\nWe recommend exporting a JSON backup first.',
+    next: 'Next', finalTitle: 'Final confirmation', finalBody: 'Really delete everything? This cannot be undone.\n(Numbering will restart from 1.)', deleteAllIt: 'Delete all', allDeleted: 'All data deleted',
+    sampleImage: 'Sample image', sampleImageBack: 'Sample image (back)',
+    noLocal: 'There is no earlier data on this device', localTitle: 'Move data to the cloud?',
+    localBody: 'This device has {n} bottles{samples} from an earlier version.\nMoving them to the cloud syncs them between your phone and PC.\n\nThe data on this device will be kept.{again}',
+    localSamples: ' (incl. {n} samples)', localAgain: '\n\nNote: this device’s data has already been moved. Moving it again will create duplicates.',
+    neverShow: 'Don’t show again', notNow: 'Not now', migrateIt: 'Move', laterFromMenu: 'You can do this later from the ⚙ menu',
+    localFailed: 'Migration failed: {e}', localPreparing: 'Preparing… (converting photos)', localPreparingN: 'Preparing… {i} / {n}',
+    localDone: 'Moved {n} bottles to the cloud{skipped}', localSkipped: ' (skipped {n} unreadable photos)',
+    offlineCantCheck: 'Cannot check while offline', importsOfflineState: 'Cannot check import status while offline', badFormat: 'Invalid format',
+    importsBad: 'Some registration files could not be read: {list}', importsNone: 'No new registration data', importsTitle: 'New registration data',
+    importsBody: '{n} new bottles are ready to import.\n\n{lines}\n\nNumbers will continue from the current ones.', andMore: 'and {n} more', unnamed: '(no name)',
+    later: 'Later', importIt: 'Import', importsElsewhere: 'Already imported on another device', importsDone: 'Imported {n} bottles', importsCheckFailed: 'Could not check registration data: {e}',
+    logoutBody: 'Sign out of {email}?', logoutPending: '\n\nSome changes have not been sent yet. They will be sent the next time you sign in with this account.',
+    taxTitle: 'Classification migration', confirm: 'Confirm',
+    taxIntro: 'Classification now has three levels: Type → Class → Style. Below is an automatic proposal for your existing bottles. Review and adjust it, then press Confirm. The old sub-type values are kept as “Old sub-type”.',
+    taxCount: '{n} bottles', taxBlank: 'Blank {n}', taxCheck: 'To review {n}', taxHint: 'Researched {n}', taxOnlyAttention: 'Show only items needing attention',
+    flagBlank: 'Blank', flagCheck: 'Review', flagHint: 'Researched', legacyLabel: 'Old sub-type', noneValue: '(none)',
+    taxNone: 'No bottles need migration', taxDone: 'Updated the classification of {n} bottles', taxConfirmBlank: '{n} bottles have no class. Confirm anyway? (You can set it later from the edit screen.)',
+    taxConfirmIt: 'Confirm', taxLaterToast: 'You can open this later from “Classification migration” in the ⚙ menu',
+    csvSample: 'Y',
+  },
+};
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+let lang = 'ja';
+function t(key, p = {}) {
+  const s = I18N[lang][key] ?? I18N.ja[key] ?? key;
+  return s.replace(/\{(\w+)\}/g, (_, k) => (p[k] ?? ''));
+}
+// 保存値（日本語）→ 英語表示
+const VALUE_EN = new Map([
+  ...TAXONOMY.flatMap((c) => [[c.name, c.en], ...c.groups, ...c.styles]),
+  ['未開栓', 'Unopened'], ['開栓済み', 'Opened'], ['飲み切り', 'Finished'],
+  ['ボトル正面', 'Front'], ['ラベル裏', 'Back label'],
+  ...Object.entries(COUNTRY_EN),
+]);
+const VALUE_JA = new Map([...VALUE_EN].map(([ja, en]) => [en.toLowerCase(), ja]));
+const tv = (v) => (lang === 'en' && v ? (VALUE_EN.get(v) || v) : (v ?? ''));
+// 入力欄の値（英語表示の候補から選んだ場合）→ 保存値（日本語）
+const fromDisplay = (v) => (lang === 'en' && v ? (VALUE_JA.get(v.trim().toLowerCase()) || v) : v);
+// 分類の表示：「ウイスキー／スコッチ／シングルモルト」（未移行の記録は旧サブ種別を添える）
+function catPath(b) {
+  const parts = [tv(b.category), tv(b.group), tv(b.style)];
+  if (b.group === undefined && b.subCategory) parts.push(b.subCategory);
+  return parts.filter(Boolean).join(lang === 'en' ? ' / ' : '／');
+}
 
 /* =========================================================
    小さなユーティリティ
@@ -705,6 +1023,7 @@ const isValidYMD = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s)
 const fmtNum = (n, maxFrac = 0) => Number(n).toLocaleString('ja-JP', { maximumFractionDigits: maxFrac });
 const fmtTHB = (n) => (n == null || Number.isNaN(n)) ? '—' : `฿${fmtNum(n, 2)}`;
 const fmtUnit = (n) => (n == null) ? '—' : `฿${fmtNum(n, 1)}`;
+const fmtDateTime = (ms) => new Date(ms).toLocaleString(lang === 'en' ? 'en-GB' : 'ja-JP');
 // 数値入力のパース（空欄は null、カンマは除去）
 function parseNum(v) {
   if (v == null) return null;
@@ -722,8 +1041,8 @@ function unitPrice(b) {
 // 星表示（★☆）
 function starsHTML(r) {
   r = r || 0;
-  if (!r) return '<span class="stars" title="未評価"><span class="off">☆☆☆☆☆</span></span>';
-  return `<span class="stars" title="評価 ${r}">${'★'.repeat(r)}<span class="off">${'★'.repeat(5 - r)}</span></span>`;
+  if (!r) return `<span class="stars" title="${esc(t('unrated'))}"><span class="off">☆☆☆☆☆</span></span>`;
+  return `<span class="stars" title="${esc(t('ratingOf', { n: r }))}">${'★'.repeat(r)}<span class="off">${'★'.repeat(5 - r)}</span></span>`;
 }
 
 // 表示用 No.（サンプルは S1, S2… と別系統）
@@ -758,15 +1077,19 @@ const state = {
   lastNo: 0,            // 実データの採番カウンタ（削除しても戻さない）
   tab: 'list',
   view: 'table',        // 'table' | 'card'
-  q: '', fCategory: '', fCountry: '', fStatus: '',
+  q: '', fCategory: '', fGroup: '', fCountry: '', fStatus: '',
   sortKey: 'purchaseDate', sortDir: 'desc',
+  statsOpen: new Set(), // 集計表で内訳を開いている種別
 };
 
 /* =========================================================
    Firestore のデータ構造
-   users/{uid}/bottles/{id}    … お酒の記録。photos: [{ id, thumb }]（thumb は軽量サムネイルの data URL）
+   users/{uid}/bottles/{id}    … お酒の記録
+       category（種別）/ group（大分類）/ style（小分類）/ legacySubCategory（旧サブ種別。移行時に保持）
+       photos: [{ id, thumb }]（thumb は軽量サムネイルの data URL）
    users/{uid}/photos/{id}     … 写真本体（data: Base64 の data URL）。1枚1ドキュメント
    users/{uid}/meta/counter    … { lastNo }（No. の採番カウンタ）
+   users/{uid}/meta/imports    … { files: [取り込み済みのファイル名] }
    ========================================================= */
 let uid = null;
 let unsubs = [];
@@ -774,11 +1097,12 @@ const userCol = (name) => collection(db, 'users', uid, name);
 const bottleRef = (id) => (id ? doc(userCol('bottles'), id) : doc(userCol('bottles')));
 const photoRef = (id) => (id ? doc(userCol('photos'), id) : doc(userCol('photos')));
 const counterRef = () => doc(db, 'users', uid, 'meta', 'counter');
-const importsRef = () => doc(db, 'users', uid, 'meta', 'imports');   // { files: [取り込み済みのファイル名] }
+const importsRef = () => doc(db, 'users', uid, 'meta', 'imports');
 
-// 保存用の形にする（画面用の id や旧形式の photoIds は含めない）
+// 保存用の形にする（画面用の id、旧形式の photoIds・subCategory は含めない）
 function toBottleDoc(b) {
-  const { id, photoIds, ...rest } = b;
+  const { id, photoIds, subCategory, ...rest } = b;
+  if (subCategory && rest.legacySubCategory == null) rest.legacySubCategory = subCategory;
   return rest;
 }
 // 作成順（同順位の並びを安定させる）
@@ -798,7 +1122,7 @@ function commitBatch(batch) {
   sync.pendingOps++;
   renderSync();
   batch.commit()
-    .catch((err) => { console.error(err); toast('クラウドへの保存に失敗しました：' + errText(err)); })
+    .catch((err) => { console.error(err); toast(t('saveFailed', { e: errText(err) })); })
     .finally(() => { sync.pendingOps--; renderSync(); });
 }
 // ops：(batch) => void の配列。件数上限ごとに分けてコミットする
@@ -810,7 +1134,7 @@ function commitOps(ops) {
   }
 }
 function errText(err) {
-  if (err?.code === 'permission-denied') return '権限がありません（ログインし直してください）';
+  if (err?.code === 'permission-denied') return t('noPermission');
   return err?.message || String(err);
 }
 
@@ -826,10 +1150,10 @@ function renderSync() {
   if (!navigator.onLine) st = 'offline';
   else if (sync.fromCache) st = Date.now() < sync.connectingUntil ? 'syncing' : 'offline';
   else st = pending ? 'syncing' : 'synced';
-  const label = { synced: '同期済み', syncing: '同期中', offline: pending ? 'オフライン（未送信あり）' : 'オフライン' }[st];
+  const label = { synced: t('syncSynced'), syncing: t('syncSyncing'), offline: pending ? t('syncOfflinePending') : t('syncOffline') }[st];
   el.dataset.state = st;
   $('.txt', el).textContent = label;
-  el.title = st === 'offline' ? '電波が戻ると自動で同期されます' : label;
+  el.title = st === 'offline' ? t('syncOfflineTip') : label;
 }
 
 /* ---------- 読み込み（リアルタイム反映） ---------- */
@@ -846,12 +1170,12 @@ function subscribe() {
       renderAll();
       refreshViewerBottle();
     }
-    // サーバーの最新データを受け取った時点で、No. の重複修正と旧データの移行確認を行う
+    // サーバーの最新データを受け取った時点で、No. の重複修正・各種の確認を行う
     if (!snap.metadata.fromCache) {
       if (!snap.metadata.hasPendingWrites) fixDuplicateNumbers();
       checkLegacyMigration();
+      if (!taxonomyChecked) { taxonomyChecked = true; openTaxonomyMigration(); }
       if (!importsChecked) { importsChecked = true; checkImports(); }
-      if (!bourbonChecked) { bourbonChecked = true; checkBourbonCategory(); }
     }
   }, onListenError));
   unsubs.push(onSnapshot(counterRef(), (snap) => {
@@ -865,9 +1189,7 @@ function unsubscribeAll() {
 }
 function onListenError(err) {
   console.error(err);
-  toast(err?.code === 'permission-denied'
-    ? 'データを読み込む権限がありません（Firestore のルールをご確認ください）'
-    : 'データの読み込みに失敗しました：' + errText(err));
+  toast(err?.code === 'permission-denied' ? t('listenDenied') : t('listenFailed', { e: errText(err) }));
 }
 
 // スマホとPCで同時にオフライン登録すると No. が重複しうるため、後から登録した方を振り直す
@@ -891,7 +1213,110 @@ function fixDuplicateNumbers() {
   batch.set(counterRef(), { lastNo }, { merge: true });
   state.metaLastNo = lastNo;
   commitBatch(batch);
-  toast(`No. の重複を修正しました（${msgs.join('、')}）`);
+  toast(t('dupFixed', { list: msgs.join(', ') }));
+}
+
+/* =========================================================
+   分類の自動判定（旧：種別＋サブ種別 → 新：種別／大分類／小分類）
+   既存データの移行と、旧形式の JSON（imports・バックアップ）の取り込みで使う
+   kind：'rule'（ルールで判定）/ 'fallback'（「その他◯◯」に振り分け＝要確認）/ 'blank'（判定できず空欄）
+   ========================================================= */
+const STYLE_PATTERNS = [
+  ['ブレンデッドモルト', /ブレンデッド\s*モルト|blended\s*malt/i],
+  ['シングルモルト', /シングル\s*モルト|single\s*malt/i],
+  ['グレーン＆モルト', /グレーン\s*[＆&]\s*モルト|grain\s*&\s*malt/i],
+  ['タイ ブレンデッドスピリッツ', /タイ\s*ブレンデッド\s*スピリッツ|thai\s*blended\s*spirit/i],
+  ['グレープブランデー', /グレープ\s*ブランデー|grape\s*brandy/i],
+  ['V.S.O.P.', /V\.?\s?S\.?\s?O\.?\s?P\.?/i],
+  ['XO', /(^|[^A-Za-z])X\.?O\.?(?![A-Za-z])/i],
+  ['VS', /(^|[^A-Za-z])V\.?S\.?(?![A-Za-z.])/i],
+  ['ブレンデッド', /ブレンデッド(?!\s*(モルト|スピリッツ))|blended(?!\s*(malt|spirit))/i],
+  ['グレーン', /グレーン(?!\s*[＆&])/],
+];
+const BRANDY_NAME_STYLES = ['V.S.O.P.', 'XO', 'VS'];
+
+function extractStyle(category, sub, name) {
+  for (const [style, re] of STYLE_PATTERNS) if (re.test(sub)) return style;
+  if (category === 'ブランデー') {
+    for (const [style, re] of STYLE_PATTERNS) if (BRANDY_NAME_STYLES.includes(style) && re.test(name)) return style;
+  }
+  return '';
+}
+// 旧サブ種別に大分類名がそのまま含まれていれば採用（「その他◯◯」は除く）
+function matchGroupName(category, text) {
+  return groupsOf(category).find((g) => !g.startsWith('その他') && (text === g || (g.length >= 3 && text.includes(g)))) || '';
+}
+
+function autoClassify(b) {
+  const sub = String(b.subCategory ?? b.legacySubCategory ?? '');
+  const name = String(b.name || '');
+  const country = String(b.country || '');
+  let category = String(b.category || '');
+  const wasBourbon = category === 'バーボン';   // 以前の種別「バーボン」はウイスキーの大分類へ
+  if (wasBourbon) category = 'ウイスキー';
+  if (!CATEGORIES.includes(category)) category = 'その他';
+  const both = `${name}\n${sub}`;
+  let group = '';
+  let kind = 'rule';
+  const fallback = (g) => { group = matchGroupName(category, sub) || g; if (group === g) kind = 'fallback'; };
+  switch (category) {
+    case 'ウイスキー':
+      if (country === 'スコットランド') group = 'スコッチ';
+      else if (/テネシー|tennessee/i.test(sub)) group = 'テネシー';
+      else if (wasBourbon || /バーボン|bourbon/i.test(sub)) group = 'バーボン';
+      else if (country === 'アイルランド') group = 'アイリッシュ';
+      else if (country === '日本') group = 'ジャパニーズ';
+      else if (/タイ\s*ブレンデッド\s*スピリッツ/.test(sub)) group = 'タイウイスキー';
+      else fallback('その他ウイスキー');
+      break;
+    case 'ブランデー':
+      if (/コニャック|cognac/i.test(sub)) group = 'コニャック';
+      else if (country === 'フランス') group = 'フレンチブランデー';
+      else if (country === 'タイ') group = 'タイブランデー';
+      else fallback('その他ブランデー');
+      break;
+    case 'ラム':
+      if (/ゴールド|gold/i.test(both)) group = 'ゴールドラム';
+      else if (/エイジド|aged/i.test(both)) group = 'エイジドラム';
+      else fallback('その他ラム');
+      break;
+    case 'リキュール':
+      if (/ウイスキー\s*リキュール|whisk(e)?y\s*liqueur/i.test(sub)) group = 'ウイスキーリキュール';
+      else if (/ハーブ|herb/i.test(sub)) group = 'ハーブ系';
+      break;
+    case 'その他':
+      if (country === 'タイ') group = 'タイ地酒・クラフトスピリッツ';
+      break;
+    default:
+      break;
+  }
+  if (!group) group = matchGroupName(category, sub);
+  if (!group) kind = 'blank';
+  return { category, group, style: extractStyle(category, sub, name), kind };
+}
+
+// 調査の結果、ルールだけでは正しく振り分けられない既存の記録（2026-10 の移行時に確認済み）
+// 移行画面の初期値としてのみ使う
+const MIGRATION_HINTS = {
+  '天道': { group: 'タイウイスキー', style: 'グレーン＆モルト', country: 'タイ' },
+  'バーンバレル ダブルダーク': { country: 'インド' },
+  'プラヤ エレメンツ': { group: 'ゴールドラム' },
+  'センソム': { group: 'エイジドラム' },
+  'メコン': { group: 'スパイスドラム' },
+};
+
+// 取り込むデータ（新形式・旧形式どちらも）を新しい分類に揃える
+function classifyRecord(raw) {
+  const legacy = raw.legacySubCategory != null && raw.legacySubCategory !== '' ? String(raw.legacySubCategory)
+    : (raw.subCategory != null && raw.subCategory !== '' ? String(raw.subCategory) : null);
+  if (raw.group !== undefined || raw.style !== undefined) {
+    let category = raw.category === 'バーボン' ? 'ウイスキー' : String(raw.category || '');
+    if (!CATEGORIES.includes(category)) category = 'その他';
+    const group = groupsOf(category).includes(raw.group) ? raw.group : '';
+    return { category, group, style: raw.style == null ? '' : String(raw.style), legacy };
+  }
+  const r = autoClassify(raw);
+  return { category: r.category, group: r.group, style: r.style, legacy };
 }
 
 /* =========================================================
@@ -911,7 +1336,7 @@ function weekNumber(dateStr, base) {
   const days = Math.round((ymdToUTC(dateStr) - ymdToUTC(base)) / 86400000);
   return Math.floor(days / 7) + 1;
 }
-const weekLabel = (n) => (n != null && n >= 1) ? `第${n}週` : '—';
+const weekLabel = (n) => (n != null && n >= 1) ? t('week', { n }) : '—';
 
 /* =========================================================
    画像処理（Canvas でリサイズ＋JPEG圧縮）
@@ -978,12 +1403,14 @@ async function preparePhoto(src) {
 /* =========================================================
    一覧：絞り込み・並べ替え
    ========================================================= */
+const catIndex = (b) => { const i = CATEGORIES.indexOf(b.category); return i < 0 ? 99 : i; };
+const groupIndex = (b) => { const i = groupsOf(b.category).indexOf(b.group); return i < 0 ? 99 : i; };
 const SORT_VALUE = {
   no: (b) => b.isSample ? 1e9 + (b.sampleNo || 0) : b.no,
   purchaseDate: (b) => b.purchaseDate || null,
   name: (b) => b.name || null,
-  category: (b) => { const i = CATEGORIES.indexOf(b.category); return i < 0 ? null : i; },
-  country: (b) => b.country || null,
+  category: (b) => catIndex(b) * 100 + groupIndex(b),
+  country: (b) => tv(b.country) || null,
   abv: (b) => b.abv,
   volumeMl: (b) => b.volumeMl,
   priceTHB: (b) => b.priceTHB,
@@ -996,6 +1423,7 @@ function filteredBottles() {
   const q = state.q.trim().toLowerCase();
   const list = state.bottles.filter((b) => {
     if (state.fCategory && b.category !== state.fCategory) return false;
+    if (state.fGroup && b.group !== state.fGroup) return false;
     if (state.fCountry && (b.country || '') !== state.fCountry) return false;
     if (state.fStatus && b.status !== state.fStatus) return false;
     if (q) {
@@ -1012,7 +1440,7 @@ function filteredBottles() {
     if (na && nb) return cmpCreated(b, a);
     if (na) return 1;          // 空の値は常に末尾
     if (nb) return -1;
-    let c = (typeof va === 'string') ? va.localeCompare(vb, 'ja') : va - vb;
+    let c = (typeof va === 'string') ? va.localeCompare(vb, lang) : va - vb;
     if (c === 0) c = (a.purchaseDate || '').localeCompare(b.purchaseDate || '') || cmpCreated(a, b);
     return c * dir;
   });
@@ -1031,43 +1459,61 @@ function renderAll() {
 
 // 絞り込みプルダウンの選択肢を更新
 function renderFilters() {
-  const fill = (sel, label, values, current) => {
-    sel.innerHTML = `<option value="">${label}：すべて</option>` +
-      values.map((v) => `<option value="${esc(v)}"${v === current ? ' selected' : ''}>${esc(v)}</option>`).join('');
-  };
+  const opt = (v, label, current) => `<option value="${esc(v)}"${v === current ? ' selected' : ''}>${esc(label)}</option>`;
+  const allOpt = (label) => `<option value="">${esc(t('all', { label }))}</option>`;
+
   const cats = CATEGORIES.filter((c) => state.bottles.some((b) => b.category === c));
   if (state.fCategory && !cats.includes(state.fCategory)) cats.push(state.fCategory);
-  fill($('#fCategory'), '種別', cats, state.fCategory);
+  $('#fCategory').innerHTML = allOpt(t('category')) + cats.map((c) => opt(c, tv(c), state.fCategory)).join('');
+
+  // 大分類：種別を選んでいればその大分類だけ、未選択なら種別ごとにまとめて表示
+  const present = (cat) => groupsOf(cat).filter((g) => state.bottles.some((b) => b.category === cat && b.group === g) || g === state.fGroup);
+  let groupHtml = allOpt(t('group'));
+  if (state.fCategory) {
+    groupHtml += present(state.fCategory).map((g) => opt(g, tv(g), state.fGroup)).join('');
+  } else {
+    groupHtml += cats.map((c) => {
+      const gs = present(c);
+      return gs.length ? `<optgroup label="${esc(tv(c))}">${gs.map((g) => opt(g, tv(g), state.fGroup)).join('')}</optgroup>` : '';
+    }).join('');
+  }
+  $('#fGroup').innerHTML = groupHtml;
 
   const countryCount = new Map();
   state.bottles.forEach((b) => { if (b.country) countryCount.set(b.country, (countryCount.get(b.country) || 0) + 1); });
-  const countries = [...countryCount.keys()].sort((a, b) => countryCount.get(b) - countryCount.get(a) || a.localeCompare(b, 'ja'));
+  const countries = [...countryCount.keys()].sort((a, b) => countryCount.get(b) - countryCount.get(a) || tv(a).localeCompare(tv(b), lang));
   if (state.fCountry && !countries.includes(state.fCountry)) countries.push(state.fCountry);
-  fill($('#fCountry'), '原産国', countries, state.fCountry);
+  $('#fCountry').innerHTML = allOpt(t('country')) + countries.map((c) => opt(c, tv(c), state.fCountry)).join('');
 
-  fill($('#fStatus'), '状態', STATUSES, state.fStatus);
+  $('#fStatus').innerHTML = allOpt(t('status')) + STATUSES.map((s) => opt(s, tv(s), state.fStatus)).join('');
 
   const cur = `${state.sortKey}:${state.sortDir}`;
-  const opts = SORT_OPTIONS.slice();
-  if (!opts.some(([v]) => v === cur)) opts.push([cur, '（表の見出しで指定）']);
-  $('#sortSel').innerHTML = opts.map(([v, l]) => `<option value="${v}"${v === cur ? ' selected' : ''}>${l}</option>`).join('');
+  const opts = SORT_KEYS.map((k) => [k, t(`sort_${k.replace(':', '_')}`)]);
+  if (!opts.some(([v]) => v === cur)) opts.push([cur, t('sortByHeader')]);
+  $('#sortSel').innerHTML = opts.map(([v, l]) => opt(v, l, cur)).join('');
 
   $$('.seg [data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === state.view)));
 }
 
 // 入力候補（datalist）：過去の入力値を優先して表示
 function renderDatalists() {
-  const uniq = (key) => {
+  const uniq = (key, filter = () => true) => {
     const count = new Map();
-    state.bottles.forEach((b) => { const v = (b[key] || '').trim(); if (v) count.set(v, (count.get(v) || 0) + 1); });
+    state.bottles.filter(filter).forEach((b) => { const v = (b[key] || '').trim(); if (v) count.set(v, (count.get(v) || 0) + 1); });
     return [...count.keys()].sort((a, b) => count.get(b) - count.get(a));
   };
-  const toOpts = (arr) => arr.map((v) => `<option value="${esc(v)}"></option>`).join('');
+  const toOpts = (arr) => [...new Set(arr)].map((v) => `<option value="${esc(v)}"></option>`).join('');
   const pastCountries = uniq('country');
-  $('#dlCountry').innerHTML = toOpts([...pastCountries, ...DEFAULT_COUNTRIES.filter((c) => !pastCountries.includes(c))]);
+  $('#dlCountry').innerHTML = toOpts([...pastCountries, ...DEFAULT_COUNTRIES].map(tv));
   $('#dlBrand').innerHTML = toOpts(uniq('brand'));
-  $('#dlSub').innerHTML = toOpts(uniq('subCategory'));
   $('#dlShop').innerHTML = toOpts(uniq('shop'));
+  renderStyleList();
+}
+// 小分類の候補：選択中の種別の候補＋過去に同じ種別で入力した値
+function renderStyleList() {
+  const cat = $('#fCat').value;
+  const past = state.bottles.filter((b) => b.category === cat && b.style).map((b) => b.style);
+  $('#dlStyle').innerHTML = [...new Set([...stylesOf(cat), ...past])].map((v) => `<option value="${esc(tv(v))}"></option>`).join('');
 }
 
 /* =========================================================
@@ -1083,29 +1529,30 @@ function renderList() {
 
   if (!state.loaded) {
     $('#listSummary').textContent = '';
-    area.innerHTML = '<div class="empty"><p>データを読み込んでいます…</p></div>';
+    area.innerHTML = `<div class="empty"><p>${esc(t('loadingData'))}</p></div>`;
     return;
   }
   if (all === 0) {
     $('#listSummary').textContent = '';
     area.innerHTML = `
       <div class="empty">
-        <h2>まだ記録がありません</h2>
-        <p>「＋新規追加」から1本目を登録しましょう。<br>動作を試したいときはサンプルデータを投入できます。</p>
+        <h2>${esc(t('emptyTitle'))}</h2>
+        <p>${t('emptyBody')}</p>
         <div class="actions">
-          <button type="button" class="btn primary" data-empty="add">＋ 新規追加</button>
-          <button type="button" class="btn" data-empty="samples">サンプルデータを投入</button>
+          <button type="button" class="btn primary" data-empty="add">${esc(t('emptyAdd'))}</button>
+          <button type="button" class="btn" data-empty="samples">${esc(t('emptySamples'))}</button>
         </div>
       </div>`;
     return;
   }
 
   const total = list.reduce((s, b) => s + (b.priceTHB || 0), 0);
-  $('#listSummary').textContent =
-    `全${all}本${sampleCount ? `（うちサンプル${sampleCount}本）` : ''}中 ${list.length}本を表示 ・ 表示中の合計 ${fmtTHB(total)}`;
+  $('#listSummary').textContent = t('summary', {
+    all, shown: list.length, total: fmtTHB(total), samples: sampleCount ? t('summarySamples', { n: sampleCount }) : '',
+  });
 
   if (list.length === 0) {
-    area.innerHTML = '<div class="empty"><h2>該当する記録がありません</h2><p>検索語や絞り込み条件を変えてみてください。</p></div>';
+    area.innerHTML = `<div class="empty"><h2>${esc(t('noMatchTitle'))}</h2><p>${esc(t('noMatchBody'))}</p></div>`;
     return;
   }
 
@@ -1114,39 +1561,41 @@ function renderList() {
 }
 
 // 写真のない記録に付ける印（あとで実物を撮影して追加する目印）
-const NO_PHOTO_BADGE = '<span class="badge nophoto">写真未登録</span>';
+const noPhotoBadge = () => `<span class="badge nophoto">${esc(t('noPhoto'))}</span>`;
+const statusBadge = (b) => `<span class="badge st-${esc(b.status)}">${esc(tv(b.status))}</span>`;
+const sampleBadge = () => `<span class="badge sample">${esc(t('sample'))}</span>`;
 
 function tableHTML(list, base) {
   const th = (key, label, cls = '') => {
     const arrow = state.sortKey === key ? `<span class="arrow">${state.sortDir === 'asc' ? '▲' : '▼'}</span>` : '';
-    return `<th data-sort="${key}" class="${cls}" aria-sort="${state.sortKey === key ? (state.sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}">${label}${arrow}</th>`;
+    return `<th data-sort="${key}" class="${cls}" aria-sort="${state.sortKey === key ? (state.sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}">${esc(label)}${arrow}</th>`;
   };
   const rows = list.map((b) => {
     const n = b.photos?.length || 0;
     const photo = n
-      ? `<button type="button" class="thumb-btn" data-viewer="${esc(b.id)}" aria-label="写真を拡大"><img class="thumb" src="${esc(b.photos[0].thumb)}" alt="" loading="lazy" decoding="async">${n > 1 ? `<span class="cnt">${n}</span>` : ''}</button>`
-      : `<div class="no-photo">${BOTTLE_ICON}</div>${NO_PHOTO_BADGE}`;
+      ? `<button type="button" class="thumb-btn" data-viewer="${esc(b.id)}" aria-label="${esc(t('zoomPhoto'))}"><img class="thumb" src="${esc(b.photos[0].thumb)}" alt="" loading="lazy" decoding="async">${n > 1 ? `<span class="cnt">${n}</span>` : ''}</button>`
+      : `<div class="no-photo">${BOTTLE_ICON}</div>${noPhotoBadge()}`;
     return `<tr data-id="${esc(b.id)}">
       <td>${photo}</td>
-      <td class="num">${esc(displayNo(b))}${b.isSample ? ' <span class="badge sample">サンプル</span>' : ''}</td>
+      <td class="num">${esc(displayNo(b))}${b.isSample ? ' ' + sampleBadge() : ''}</td>
       <td class="num">${esc(b.purchaseDate || '')}</td>
       <td>${weekLabel(weekNumber(b.purchaseDate, base))}</td>
       <td class="name-cell"><strong>${esc(b.name)}</strong>${b.brand ? `<div>${esc(b.brand)}</div>` : ''}</td>
-      <td>${esc(b.category || '')}${b.subCategory ? `<div class="meta-line">${esc(b.subCategory)}</div>` : ''}</td>
-      <td>${esc(b.country || '')}${b.region ? `<div class="meta-line">${esc(b.region)}</div>` : ''}</td>
+      <td class="name-cell">${esc(catPath(b))}</td>
+      <td>${esc(tv(b.country))}${b.region ? `<div class="meta-line">${esc(b.region)}</div>` : ''}</td>
       <td class="r num">${b.volumeMl != null ? fmtNum(b.volumeMl) + 'ml' : '—'}</td>
       <td class="r num">${b.abv != null ? fmtNum(b.abv, 1) + '%' : '—'}</td>
       <td class="r num">${fmtTHB(b.priceTHB)}</td>
       <td class="r num">${fmtUnit(unitPrice(b))}</td>
-      <td><span class="badge st-${esc(b.status)}">${esc(b.status)}</span></td>
+      <td>${statusBadge(b)}</td>
       <td>${starsHTML(b.rating)}</td>
     </tr>`;
   }).join('');
   return `<div class="table-wrap"><table class="tbl">
     <thead><tr>
-      <th>写真</th>${th('no', 'No.')}${th('purchaseDate', '購入日')}${th('purchaseDate', '週')}${th('name', '銘柄名')}
-      ${th('category', '種別')}${th('country', '原産国')}${th('volumeMl', '容量', 'r')}${th('abv', '度数', 'r')}
-      ${th('priceTHB', '金額', 'r')}${th('unitPrice', '100ml単価', 'r')}${th('status', '状態')}${th('rating', '評価')}
+      <th>${esc(t('colPhoto'))}</th>${th('no', 'No.')}${th('purchaseDate', t('colDate'))}${th('purchaseDate', t('colWeek'))}${th('name', t('colName'))}
+      ${th('category', t('colCategory'))}${th('country', t('colCountry'))}${th('volumeMl', t('colVolume'), 'r')}${th('abv', t('colAbv'), 'r')}
+      ${th('priceTHB', t('colPrice'), 'r')}${th('unitPrice', t('colUnit'), 'r')}${th('status', t('colStatus'))}${th('rating', t('colRating'))}
     </tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 }
@@ -1155,18 +1604,19 @@ function cardsHTML(list, base) {
   return `<div class="cards">${list.map((b) => {
     const n = b.photos?.length || 0;
     const photo = n
-      ? `<button type="button" class="card-photo" data-viewer="${esc(b.id)}" aria-label="写真を拡大"><img src="${esc(b.photos[0].thumb)}" alt="${esc(b.name)}" loading="lazy" decoding="async">`
+      ? `<button type="button" class="card-photo" data-viewer="${esc(b.id)}" aria-label="${esc(t('zoomPhoto'))}"><img src="${esc(b.photos[0].thumb)}" alt="${esc(b.name)}" loading="lazy" decoding="async">`
       : `<div class="card-photo"><div class="ph">${BOTTLE_ICON}</div>`;
     const endTag = n ? '</button>' : '</div>';
     return `<article class="card" data-id="${esc(b.id)}">
       ${photo}
-        <div class="overlay"><span class="badge st-${esc(b.status)}">${esc(b.status)}</span>${b.isSample ? '<span class="badge sample">サンプル</span>' : ''}${n ? '' : NO_PHOTO_BADGE}</div>
+        <div class="overlay">${statusBadge(b)}${b.isSample ? sampleBadge() : ''}${n ? '' : noPhotoBadge()}</div>
         ${n > 1 ? `<span class="cnt">📷 ${n}</span>` : ''}
       ${endTag}
       <div class="card-body">
         <div class="card-no">No.${esc(displayNo(b))} ・ ${weekLabel(weekNumber(b.purchaseDate, base))} ・ ${esc(b.purchaseDate || '')}</div>
         <h3>${esc(b.name)}</h3>
-        <div class="card-sub">${esc([b.brand, b.category, b.country].filter(Boolean).join(' ・ '))}</div>
+        <div class="card-sub">${esc(catPath(b))}</div>
+        <div class="card-sub">${esc([b.brand, tv(b.country)].filter(Boolean).join(' ・ '))}</div>
         <div class="card-foot">${starsHTML(b.rating)}<span class="price num">${fmtTHB(b.priceTHB)}</span></div>
       </div>
     </article>`;
@@ -1224,25 +1674,26 @@ async function showViewerPhoto() {
   const p = b.photos[viewer.idx];
   const token = ++viewer.token;
   const img = $('#viewerImg');
-  const caption = `${PHOTO_LABELS[viewer.idx]} ・ ${viewer.idx + 1} / ${n}`;
-  img.alt = `${b.name}（${PHOTO_LABELS[viewer.idx]}）`;
+  const label = tv(PHOTO_LABELS[viewer.idx]);
+  const caption = `${label} ・ ${viewer.idx + 1} / ${n}`;
+  img.alt = `${b.name}（${label}）`;
   $('#viewerPrev').disabled = viewer.idx === 0;
   $('#viewerNext').disabled = viewer.idx >= n - 1;
   $('#viewerPrev').hidden = $('#viewerNext').hidden = n <= 1;
   // まずサムネイルを表示し、本体が届いたら差し替える
   const cached = photoDataCache.get(p.id);
   img.src = cached || p.thumb;
-  $('#viewerCaption').textContent = cached ? caption : `${caption} ・ 読み込み中…`;
+  $('#viewerCaption').textContent = cached ? caption : `${caption} ・ ${t('photoLoading')}`;
   if (cached) return;
   let note = '';
   try {
     const data = await fetchPhotoData(p.id);
     if (token !== viewer.token) return;
-    if (data) img.src = data; else note = '（写真が見つかりません）';
+    if (data) img.src = data; else note = t('photoMissing');
   } catch (err) {
     console.warn(err);
     if (token !== viewer.token) return;
-    note = '（オフラインのため縮小画像を表示中）';
+    note = t('photoOffline');
   }
   $('#viewerCaption').textContent = note ? `${caption} ・ ${note}` : caption;
 }
@@ -1284,14 +1735,15 @@ function setupViewer() {
    汎用の確認ダイアログ
    buttons: [{ label, value, kind: 'primary' | 'danger' }]
    戻り値：押したボタンの value（閉じた場合は ''）
-   複数の確認が同時に呼ばれた場合は、前の確認が閉じてから順に表示する
+   確認ダイアログと分類の移行画面は、前のものが閉じてから順に表示する
    ========================================================= */
-let askQueue = Promise.resolve();
-function ask(opts) {
-  const run = askQueue.then(() => showAsk(opts));
-  askQueue = run.catch(() => {});
+let dialogQueue = Promise.resolve();
+function enqueueDialog(open) {
+  const run = dialogQueue.then(open);
+  dialogQueue = run.catch(() => {});
   return run;
 }
+const ask = (opts) => enqueueDialog(() => showAsk(opts));
 function showAsk({ title, message, buttons }) {
   const dlg = $('#askDialog');
   $('#askTitle').textContent = title;
@@ -1305,8 +1757,8 @@ function showAsk({ title, message, buttons }) {
     dlg.addEventListener('close', () => resolve(dlg.returnValue), { once: true });
   });
 }
-async function confirmDanger(title, message, okLabel = '削除する') {
-  const v = await ask({ title, message, buttons: [{ label: 'キャンセル', value: '' }, { label: okLabel, value: 'ok', kind: 'danger' }] });
+async function confirmDanger(title, message, okLabel = t('deleteIt')) {
+  const v = await ask({ title, message, buttons: [{ label: t('cancel'), value: '' }, { label: okLabel, value: 'ok', kind: 'danger' }] });
   return v === 'ok';
 }
 
@@ -1320,13 +1772,22 @@ const form = {
   originalPhotoIds: [],
 };
 
+function fillCategorySelect(sel, current) {
+  sel.innerHTML = CATEGORIES.map((c) => `<option value="${esc(c)}"${c === current ? ' selected' : ''}>${esc(tv(c))}</option>`).join('');
+}
+function fillGroupSelect(sel, cat, current) {
+  sel.innerHTML = `<option value="">${esc(t('groupNone'))}</option>` +
+    groupsOf(cat).map((g) => `<option value="${esc(g)}"${g === current ? ' selected' : ''}>${esc(tv(g))}</option>`).join('');
+}
+
 function setupForm() {
-  $('#fCat').innerHTML = CATEGORIES.map((c) => `<option>${c}</option>`).join('');
-  $('#fStatusIn').innerHTML = STATUSES.map((s) => `<option>${s}</option>`).join('');
+  // 種別を変えたら大分類の選択肢と小分類の候補を切り替える（大分類はリセット）
+  $('#fCat').addEventListener('change', () => {
+    fillGroupSelect($('#fGroupIn'), $('#fCat').value, '');
+    renderStyleList();
+  });
 
   // 評価（★をクリック。同じ星をもう一度押すと未評価に戻す）
-  $('#ratingInput').innerHTML = [1, 2, 3, 4, 5].map((i) => `<button type="button" data-star="${i}" aria-label="${i}つ星">★</button>`).join('') +
-    '<span class="rating-text" id="ratingText"></span>';
   $('#ratingInput').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-star]');
     if (!btn) return;
@@ -1377,9 +1838,23 @@ function setupForm() {
   $('#editDialog').addEventListener('close', () => { form.photos = []; });
 }
 
+// 言語に依存するフォーム内の選択肢を作り直す
+function renderFormOptions() {
+  const cat = $('#fCat').value || CATEGORIES[0];
+  const group = $('#fGroupIn').value;
+  const status = $('#fStatusIn').value || STATUSES[0];
+  fillCategorySelect($('#fCat'), cat);
+  fillGroupSelect($('#fGroupIn'), cat, group);
+  $('#fStatusIn').innerHTML = STATUSES.map((s) => `<option value="${esc(s)}"${s === status ? ' selected' : ''}>${esc(tv(s))}</option>`).join('');
+  $('#ratingInput').innerHTML = [1, 2, 3, 4, 5].map((i) => `<button type="button" data-star="${i}" aria-label="${esc(t('stars', { n: i }))}">★</button>`).join('') +
+    '<span class="rating-text" id="ratingText"></span>';
+  renderRating();
+  renderStyleList();
+}
+
 function renderRating() {
   $$('#ratingInput [data-star]').forEach((b) => b.classList.toggle('on', Number(b.dataset.star) <= form.rating));
-  $('#ratingText').textContent = form.rating ? `${form.rating} / 5` : '未評価';
+  $('#ratingText').textContent = form.rating ? `${form.rating} / 5` : t('unrated');
 }
 
 function updateCalcFields() {
@@ -1403,14 +1878,22 @@ function openForm(bottle = null) {
   form.photos = (bottle?.photos || []).map((p) => ({ id: p.id, thumb: p.thumb }));
   form.originalPhotoIds = form.photos.map((p) => p.id);
 
-  $('#editTitle').textContent = bottle ? '記録を編集' : '新規追加';
-  $('#fNo').textContent = bottle ? displayNo(bottle) : `${state.lastNo + 1}（保存時に確定）`;
+  // 未移行（大分類を持たない旧形式）の記録は、自動判定の結果を初期値にする
+  const cls = bottle && bottle.group === undefined ? autoClassify(bottle)
+    : { category: bottle?.category || CATEGORIES[0], group: bottle?.group || '', style: bottle?.style || '' };
+  const legacy = bottle ? (bottle.legacySubCategory || bottle.subCategory || '') : '';
+
+  $('#editTitle').textContent = bottle ? t('editTitleEdit') : t('editTitleNew');
+  $('#fNo').textContent = bottle ? displayNo(bottle) : t('noPending', { n: state.lastNo + 1 });
   $('#fDate').value = bottle?.purchaseDate || todayStr();
   $('#fName').value = bottle?.name || '';
   $('#fBrand').value = bottle?.brand || '';
-  $('#fCat').value = bottle?.category || CATEGORIES[0];
-  $('#fSub').value = bottle?.subCategory || '';
-  $('#fCountryIn').value = bottle?.country || '';
+  fillCategorySelect($('#fCat'), cls.category);
+  fillGroupSelect($('#fGroupIn'), cls.category, cls.group);
+  $('#fStyle').value = tv(cls.style);
+  $('#fLegacy').hidden = !legacy;
+  $('#fLegacy').textContent = legacy ? t('legacyLine', { v: legacy }) : '';
+  $('#fCountryIn').value = tv(bottle?.country || '');
   $('#fRegion').value = bottle?.region || '';
   $('#fVol').value = bottle?.volumeMl ?? '';
   $('#fAbv').value = bottle?.abv ?? '';
@@ -1421,9 +1904,10 @@ function openForm(bottle = null) {
   $('#nameErr').hidden = true;
   $('#deleteBtn').hidden = !bottle;
   $('#metaLine').textContent = bottle
-    ? `登録：${new Date(bottle.createdAt).toLocaleString('ja-JP')} ／ 更新：${new Date(bottle.updatedAt).toLocaleString('ja-JP')}${bottle.isSample ? ' ／ サンプルデータ' : ''}`
+    ? t('metaLine', { c: fmtDateTime(bottle.createdAt), u: fmtDateTime(bottle.updatedAt) }) + (bottle.isSample ? t('metaSample') : '')
     : '';
   renderRating();
+  renderStyleList();
   updateCalcFields();
 
   renderPhotoSlots();
@@ -1438,26 +1922,27 @@ function renderPhotoSlots() {
   const html = [];
   for (let i = 0; i < MAX_PHOTOS; i++) {
     const p = form.photos[i];
+    const label = tv(PHOTO_LABELS[i]);
     let box, tools = '';
     if (p && p.busy) {
-      box = '<div class="slot-busy">処理中…</div>';
+      box = `<div class="slot-busy">${esc(t('processing'))}</div>`;
     } else if (p) {
-      box = `<img src="${esc(p.thumb)}" alt="${PHOTO_LABELS[i]}">`;
+      box = `<img src="${esc(p.thumb)}" alt="${esc(label)}">`;
       tools = `<div class="slot-tools">
-        <button type="button" data-move="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''} aria-label="前へ移動">◀</button>
-        <button type="button" class="del" data-remove="${i}" aria-label="削除">✕</button>
-        <button type="button" data-move="${i}" data-dir="1" ${i >= form.photos.length - 1 ? 'disabled' : ''} aria-label="後ろへ移動">▶</button>
+        <button type="button" data-move="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''} aria-label="${esc(t('moveBack'))}">◀</button>
+        <button type="button" class="del" data-remove="${i}" aria-label="${esc(t('delete'))}">✕</button>
+        <button type="button" data-move="${i}" data-dir="1" ${i >= form.photos.length - 1 ? 'disabled' : ''} aria-label="${esc(t('moveNext'))}">▶</button>
       </div>`;
     } else if (i === form.photos.length) {
       box = `<div class="slot-add">
-        <button type="button" class="btn small" data-pick="camera">📷 撮影</button>
-        <button type="button" class="btn small" data-pick="file">🖼 選択</button>
-        <small>またはドロップ</small>
+        <button type="button" class="btn small" data-pick="camera">${esc(t('takePhoto'))}</button>
+        <button type="button" class="btn small" data-pick="file">${esc(t('pickPhoto'))}</button>
+        <small>${esc(t('orDrop'))}</small>
       </div>`;
     } else {
       box = '';
     }
-    html.push(`<div class="slot"><div class="slot-label">${i + 1}. ${PHOTO_LABELS[i]}</div><div class="slot-box">${box}</div>${tools}</div>`);
+    html.push(`<div class="slot"><div class="slot-label">${i + 1}. ${esc(label)}</div><div class="slot-box">${box}</div>${tools}</div>`);
   }
   $('#photoSlots').innerHTML = html.join('');
 }
@@ -1488,8 +1973,8 @@ async function addPhotoFiles(fileList) {
   const files = Array.from(fileList || []).filter((f) => f.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(f.name));
   if (!files.length) return;
   const room = MAX_PHOTOS - form.photos.length;
-  if (room <= 0) { toast('写真は最大3枚までです'); return; }
-  if (files.length > room) toast(`写真は最大3枚までのため、先頭の${room}枚を追加します`);
+  if (room <= 0) { toast(t('maxPhotos')); return; }
+  if (files.length > room) toast(t('maxPhotosTrim', { n: room }));
   const targets = files.slice(0, room);
   const entries = targets.map(() => ({ id: null, busy: true }));
   form.photos.push(...entries);
@@ -1500,7 +1985,7 @@ async function addPhotoFiles(fileList) {
       Object.assign(entry, await preparePhoto(targets[k]), { busy: false });
     } catch (err) {
       console.error(err);
-      toast('この画像は読み込めませんでした（対応形式：JPEG / PNG など）');
+      toast(t('badImage'));
       const idx = form.photos.indexOf(entry);
       if (idx >= 0) form.photos.splice(idx, 1);
     }
@@ -1509,15 +1994,18 @@ async function addPhotoFiles(fileList) {
   }
 }
 
-// フォームの値を収集
+// フォームの値を収集（英語表示の候補から選んだ値は日本語の保存値に戻す）
 function collectForm() {
+  const category = $('#fCat').value;
+  const group = $('#fGroupIn').value;
   return {
     purchaseDate: $('#fDate').value,
     name: $('#fName').value.trim(),
     brand: $('#fBrand').value.trim(),
-    category: $('#fCat').value,
-    subCategory: $('#fSub').value.trim(),
-    country: $('#fCountryIn').value.trim(),
+    category,
+    group: groupsOf(category).includes(group) ? group : '',
+    style: fromDisplay($('#fStyle').value.trim()),
+    country: fromDisplay($('#fCountryIn').value.trim()),
     region: $('#fRegion').value.trim(),
     volumeMl: parseNum($('#fVol').value),
     abv: parseNum($('#fAbv').value),
@@ -1536,12 +2024,12 @@ async function saveForm() {
     $('#fName').focus();
     return;
   }
-  if (!isValidYMD(data.purchaseDate)) { toast('購入日を正しく入力してください'); $('#fDate').focus(); return; }
-  if (form.photos.some((p) => p.busy)) { toast('写真の処理が終わるまでお待ちください'); return; }
+  if (!isValidYMD(data.purchaseDate)) { toast(t('badDate')); $('#fDate').focus(); return; }
+  if (form.photos.some((p) => p.busy)) { toast(t('photoBusy')); return; }
 
   const now = Date.now();
   const existing = state.bottles.find((b) => b.id === form.editingId) || null;
-  if (form.editingId && !existing) { toast('この記録は別の端末で削除されました'); $('#editDialog').close(); return; }
+  if (form.editingId && !existing) { toast(t('deletedElsewhere')); $('#editDialog').close(); return; }
   const keepIds = new Set(form.photos.filter((p) => p.id).map((p) => p.id));
   const removedIds = form.originalPhotoIds.filter((id) => !keepIds.has(id));
 
@@ -1558,6 +2046,7 @@ async function saveForm() {
   });
   let rec;
   if (existing) {
+    // 旧サブ種別（subCategory）は legacySubCategory に移して保持する
     rec = { ...toBottleDoc(existing), ...data, photos, updatedAt: now };
   } else {
     // 新規：採番カウンタを進める（削除しても番号は再利用しない）
@@ -1569,18 +2058,18 @@ async function saveForm() {
   batch.set(ref, rec);
   commitBatch(batch);
   $('#editDialog').close();
-  const msg = existing ? '更新しました' : `No.${rec.no} を登録しました`;
-  toast(navigator.onLine ? msg : `${msg}（電波が戻ると同期されます）`);
+  const msg = existing ? t('updated') : t('registered', { n: rec.no });
+  toast(navigator.onLine ? msg : t('syncLater', { msg }));
 }
 
 async function deleteFromForm() {
   const b = state.bottles.find((x) => x.id === form.editingId);
   if (!b) return;
-  const ok = await confirmDanger('記録の削除', `「${b.name}」（No.${displayNo(b)}）を削除します。\n写真も一緒に削除され、元に戻せません。`);
+  const ok = await confirmDanger(t('delTitle'), t('delBody', { name: b.name, no: displayNo(b) }));
   if (!ok) return;
   deleteBottles([b]);
   $('#editDialog').close();
-  toast('削除しました');
+  toast(t('deleted'));
 }
 
 // 複数レコードと写真をまとめて削除
@@ -1599,6 +2088,17 @@ function deleteBottles(list) {
 /* =========================================================
    集計ダッシュボード（SVG で自前描画）
    ========================================================= */
+function aggregate(list, keyFn) {
+  const m = new Map();
+  list.forEach((b) => {
+    const k = keyFn(b);
+    const v = m.get(k) || { count: 0, amount: 0, priced: 0 };
+    v.count++; if (b.priceTHB != null) { v.amount += b.priceTHB; v.priced++; }
+    m.set(k, v);
+  });
+  return [...m.entries()].map(([key, v]) => ({ key, ...v }));
+}
+
 function renderStats() {
   const list = state.bottles;
   const total = list.reduce((s, b) => s + (b.priceTHB || 0), 0);
@@ -1609,41 +2109,30 @@ function renderStats() {
   const rated = list.filter((b) => b.rating);
   const avgRating = rated.length ? rated.reduce((s, b) => s + b.rating, 0) / rated.length : null;
   const sampleCount = list.filter((b) => b.isSample).length;
-  const statusCount = STATUSES.map((st) => `${st} ${list.filter((b) => b.status === st).length}`).join(' ／ ');
+  const statusCount = STATUSES.map((st) => `${tv(st)} ${list.filter((b) => b.status === st).length}`).join(' ／ ');
+  const unit = lang === 'en' ? '' : '本';
 
   $('#kpis').innerHTML = `
-    <div class="kpi"><div class="label">合計本数</div><div class="value num">${fmtNum(list.length)}<small>本</small></div><div class="sub">${statusCount}</div></div>
-    <div class="kpi"><div class="label">合計金額</div><div class="value num">${fmtTHB(total)}</div><div class="sub">${sampleCount ? `サンプル${sampleCount}本を含む` : 'THB'}</div></div>
-    <div class="kpi"><div class="label">平均単価（1本あたり）</div><div class="value num">${priced.length ? fmtTHB(Math.round(total / priced.length)) : '—'}</div><div class="sub">金額入力済み ${priced.length}本の平均</div></div>
-    <div class="kpi"><div class="label">平均単価（100mlあたり）</div><div class="value num">${fmtUnit(per100)}</div><div class="sub">平均評価 ${avgRating ? avgRating.toFixed(1) + ' / 5' : '—'}</div></div>`;
+    <div class="kpi"><div class="label">${esc(t('kTotal'))}</div><div class="value num">${fmtNum(list.length)}<small>${unit}</small></div><div class="sub">${esc(statusCount)}</div></div>
+    <div class="kpi"><div class="label">${esc(t('kAmount'))}</div><div class="value num">${fmtTHB(total)}</div><div class="sub">${esc(sampleCount ? t('inclSamples', { n: sampleCount }) : 'THB')}</div></div>
+    <div class="kpi"><div class="label">${esc(t('kAvg'))}</div><div class="value num">${priced.length ? fmtTHB(Math.round(total / priced.length)) : '—'}</div><div class="sub">${esc(t('avgOf', { n: priced.length }))}</div></div>
+    <div class="kpi"><div class="label">${esc(t('kAvg100'))}</div><div class="value num">${fmtUnit(per100)}</div><div class="sub">${esc(t('avgRating', { v: avgRating ? avgRating.toFixed(1) + ' / 5' : '—' }))}</div></div>`;
 
   // 種別ごと
-  const cat = new Map();
-  list.forEach((b) => {
-    const k = b.category || 'その他';
-    const v = cat.get(k) || { count: 0, amount: 0, priced: 0 };
-    v.count++; if (b.priceTHB != null) { v.amount += b.priceTHB; v.priced++; }
-    cat.set(k, v);
-  });
-  const catRows = [...cat.entries()].map(([label, v]) => ({ label, ...v }));
+  const catRows = aggregate(list, (b) => b.category || 'その他').map((r) => ({ ...r, label: tv(r.key) }));
   hBarChart($('#chartCatCount'), catRows.slice().sort((a, b) => b.count - a.count || b.amount - a.amount)
-    .map((r) => ({ label: r.label, value: r.count, text: `${r.count}本`, tip: `${r.label}：${r.count}本（${fmtTHB(r.amount)}）` })));
+    .map((r) => ({ label: r.label, value: r.count, text: t('bottles', { n: r.count }), tip: `${r.label}: ${t('bottles', { n: r.count })} (${fmtTHB(r.amount)})` })));
   hBarChart($('#chartCatAmount'), catRows.slice().sort((a, b) => b.amount - a.amount)
-    .map((r) => ({ label: r.label, value: r.amount, text: fmtTHB(r.amount), tip: `${r.label}：${fmtTHB(r.amount)}（${r.count}本）` })));
-  $('#catTable').innerHTML = catRows.length ? `<table class="mini-table num">
-    <thead><tr><th>種別</th><th>本数</th><th>合計金額</th><th>平均単価</th></tr></thead>
-    <tbody>${catRows.sort((a, b) => b.count - a.count).map((r) => `<tr><td>${esc(r.label)}</td><td>${r.count}</td><td>${fmtTHB(r.amount)}</td><td>${r.priced ? fmtTHB(Math.round(r.amount / r.priced)) : '—'}</td></tr>`).join('')}</tbody>
-    </table>` : '<div class="chart-empty">データがありません</div>';
+    .map((r) => ({ label: r.label, value: r.amount, text: fmtTHB(r.amount), tip: `${r.label}: ${fmtTHB(r.amount)} (${t('bottles', { n: r.count })})` })));
+  renderCatTable(list, catRows);
 
   // 原産国ごと（上位10＋その他）
-  const cn = new Map();
-  list.forEach((b) => { const k = b.country || '未入力'; cn.set(k, (cn.get(k) || 0) + 1); });
-  let cRows = [...cn.entries()].sort((a, b) => b[1] - a[1]);
+  let cRows = aggregate(list, (b) => b.country || '').map((r) => [r.key ? tv(r.key) : t('notEntered'), r.count]).sort((a, b) => b[1] - a[1]);
   if (cRows.length > 10) {
     const rest = cRows.slice(10).reduce((s, r) => s + r[1], 0);
-    cRows = [...cRows.slice(0, 10), ['その他', rest]];
+    cRows = [...cRows.slice(0, 10), [t('others'), rest]];
   }
-  hBarChart($('#chartCountry'), cRows.map(([label, v]) => ({ label, value: v, text: `${v}本`, tip: `${label}：${v}本` })));
+  hBarChart($('#chartCountry'), cRows.map(([label, v]) => ({ label, value: v, text: t('bottles', { n: v }), tip: `${label}: ${t('bottles', { n: v })}` })));
 
   // 月別（直近12か月：今月か最新購入月のうち新しい方で終わる）
   const latest = list.reduce((m, b) => (isValidYMD(b.purchaseDate) && b.purchaseDate > m) ? b.purchaseDate : m, todayStr());
@@ -1659,6 +2148,27 @@ function renderStats() {
     if (m) { m.amount += b.priceTHB || 0; m.count++; }
   });
   vBarChart($('#chartMonthly'), months);
+}
+
+// 種別ごとの集計表（行をタップすると大分類ごとの内訳を開閉）
+function renderCatTable(list, catRows) {
+  if (!catRows.length) { $('#catTable').innerHTML = `<div class="chart-empty">${esc(t('noData'))}</div>`; return; }
+  const cells = (label, r) => `<td>${esc(label)}</td><td>${r.count}</td><td>${fmtTHB(r.amount)}</td><td>${r.priced ? fmtTHB(Math.round(r.amount / r.priced)) : '—'}</td>`;
+  const body = catRows.sort((a, b) => b.count - a.count || catIndex({ category: a.key }) - catIndex({ category: b.key })).map((r) => {
+    const open = state.statsOpen.has(r.key);
+    let html = `<tr class="cat-row${open ? ' open' : ''}" data-cat="${esc(r.key)}" tabindex="0" aria-expanded="${open}">${cells(r.label, r)}</tr>`;
+    if (open) {
+      const order = groupsOf(r.key);
+      const idx = (g) => { const i = order.indexOf(g); return i < 0 ? 999 : i; };
+      html += aggregate(list.filter((b) => (b.category || 'その他') === r.key), (b) => b.group || '')
+        .sort((a, b) => b.count - a.count || idx(a.key) - idx(b.key))
+        .map((g) => `<tr class="grp-row">${cells(g.key ? tv(g.key) : t('unset'), g)}</tr>`).join('');
+    }
+    return html;
+  }).join('');
+  $('#catTable').innerHTML = `<table class="mini-table num">
+    <thead><tr><th>${esc(t('thCategory'))}</th><th>${esc(t('thCount'))}</th><th>${esc(t('thAmount'))}</th><th>${esc(t('thAvg'))}</th></tr></thead>
+    <tbody>${body}</tbody></table>`;
 }
 
 // SVG要素の組み立て用
@@ -1680,9 +2190,9 @@ const truncate = (s, n) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 
 // 横棒グラフ：rows = [{ label, value, text, tip }]
 function hBarChart(el, rows) {
-  if (!rows.length || rows.every((r) => !r.value)) { el.innerHTML = '<div class="chart-empty">データがありません</div>'; return; }
+  if (!rows.length || rows.every((r) => !r.value)) { el.innerHTML = `<div class="chart-empty">${esc(t('noData'))}</div>`; return; }
   const W = Math.max(260, el.clientWidth || 320);
-  const labelW = Math.min(110, Math.round(W * 0.3));
+  const labelW = Math.min(lang === 'en' ? 120 : 110, Math.round(W * 0.32));
   const valueW = 86;
   const barMax = W - labelW - valueW - 8;
   const rowH = 30, barH = 14;
@@ -1693,13 +2203,13 @@ function hBarChart(el, rows) {
     const w = r.value > 0 ? Math.max(2, (r.value / max) * barMax) : 0;
     return `<g class="row"><title>${esc(r.tip)}</title>
       <rect class="hit" x="0" y="${y}" width="${W}" height="${rowH}" rx="6"/>
-      <text x="${labelW - 10}" y="${y + rowH / 2}" text-anchor="end" dominant-baseline="central">${esc(truncate(r.label, 8))}</text>
+      <text x="${labelW - 10}" y="${y + rowH / 2}" text-anchor="end" dominant-baseline="central">${esc(truncate(r.label, lang === 'en' ? 14 : 8))}</text>
       <path class="bar" d="${hBarPath(labelW, y + (rowH - barH) / 2, w, barH, 4)}"/>
       <text class="val" x="${labelW + w + 6}" y="${y + rowH / 2}" dominant-baseline="central">${esc(r.text)}</text>
     </g>`;
   }).join('');
   const base = `<line class="base-line" x1="${labelW}" x2="${labelW}" y1="0" y2="${H}"/>`;
-  el.innerHTML = svgEl(W, H, base + inner, '横棒グラフ');
+  el.innerHTML = svgEl(W, H, base + inner, t('barChart'));
 }
 
 // きりの良い目盛り間隔
@@ -1713,7 +2223,7 @@ const shortTHB = (v) => v >= 1000 ? `฿${fmtNum(v / 1000, 1)}k` : `฿${fmtNum(
 
 // 月別の縦棒グラフ
 function vBarChart(el, months) {
-  if (months.every((m) => !m.amount)) { el.innerHTML = '<div class="chart-empty">直近12か月の購入データがありません</div>'; return; }
+  if (months.every((m) => !m.amount)) { el.innerHTML = `<div class="chart-empty">${esc(t('noMonthly'))}</div>`; return; }
   const W = Math.max(280, el.clientWidth || 600);
   const H = 240;
   const m = { l: 52, r: 8, t: 22, b: 36 };
@@ -1737,34 +2247,36 @@ function vBarChart(el, months) {
     const h = (mo.amount / top) * ph;
     const y = m.t + ph - h;
     const cx = m.l + slot * i + slot / 2;
-    g += `<g class="row"><title>${mo.y}年${mo.m}月：${fmtTHB(mo.amount)}（${mo.count}本）</title>
+    const mon = MONTHS_EN[mo.m - 1];
+    g += `<g class="row"><title>${esc(t('monthTip', { y: mo.y, m: mo.m, mon, amount: fmtTHB(mo.amount), n: mo.count }))}</title>
       <rect class="hit" x="${m.l + slot * i}" y="${m.t}" width="${slot}" height="${ph}"/>
       <path class="bar" d="${vBarPath(x, y, bw, h, 4)}"/>
       ${i === maxIdx ? `<text class="val" x="${cx}" y="${y - 6}" text-anchor="middle">${fmtTHB(mo.amount)}</text>` : ''}
     </g>`;
     if ((months.length - 1 - i) % every === 0) {
-      g += `<text class="axis" x="${cx}" y="${H - m.b + 16}" text-anchor="middle">${mo.m}月</text>`;
+      g += `<text class="axis" x="${cx}" y="${H - m.b + 16}" text-anchor="middle">${esc(t('monthLabel', { m: mo.m, mon }))}</text>`;
       if (i === 0 || mo.m === 1) g += `<text class="axis" x="${cx}" y="${H - m.b + 30}" text-anchor="middle">${mo.y}</text>`;
     }
   });
-  el.innerHTML = svgEl(W, H, g, '月別の購入金額');
+  el.innerHTML = svgEl(W, H, g, t('stMonthly'));
 }
 
 /* =========================================================
    バックアップ：JSON エクスポート／インポート、CSV エクスポート
    ========================================================= */
-const EXPORT_FIELDS = ['no', 'isSample', 'sampleNo', 'purchaseDate', 'name', 'brand', 'category', 'subCategory', 'country', 'region',
+const EXPORT_FIELDS = ['no', 'isSample', 'sampleNo', 'purchaseDate', 'name', 'brand', 'category', 'group', 'style', 'legacySubCategory', 'country', 'region',
   'volumeMl', 'abv', 'priceTHB', 'shop', 'status', 'rating', 'memo', 'createdAt', 'updatedAt'];
 
 async function exportJSON() {
-  if (!state.bottles.length) { toast('エクスポートするデータがありません'); return; }
-  toast('エクスポートを準備しています…（写真をダウンロード中）');
+  if (!state.bottles.length) { toast(t('exportNone')); return; }
+  toast(t('exportPreparing'));
   const bottles = [];
   let missing = 0;
   const sorted = state.bottles.slice().sort((a, b) => (SORT_VALUE.no(a) - SORT_VALUE.no(b)));
   for (const b of sorted) {
     const rec = {};
-    EXPORT_FIELDS.forEach((k) => { if (b[k] !== undefined) rec[k] = b[k]; });
+    const src = b.group === undefined ? { ...b, ...classifyRecord(b), legacySubCategory: b.subCategory } : b;
+    EXPORT_FIELDS.forEach((k) => { if (src[k] !== undefined && src[k] !== null) rec[k] = src[k]; });
     rec.photos = [];
     for (const p of (b.photos || [])) {
       try {
@@ -1778,34 +2290,36 @@ async function exportJSON() {
     bottles.push(rec);
   }
   if (missing) {
-    const v = await ask({ title: '写真を取得できませんでした',
-      message: `${missing}枚の写真を取得できませんでした（オフラインの可能性があります）。\nその写真を含めずにエクスポートしますか？`,
-      buttons: [{ label: 'キャンセル', value: '' }, { label: 'エクスポートする', value: 'ok', kind: 'primary' }] });
+    const v = await ask({ title: t('exportMissingTitle'), message: t('exportMissingBody', { n: missing }),
+      buttons: [{ label: t('cancel'), value: '' }, { label: t('exportAnyway'), value: 'ok', kind: 'primary' }] });
     if (v !== 'ok') return;
   }
-  const data = { app: 'sake-collection', version: 1, exportedAt: new Date().toISOString(), lastNo: state.lastNo, bottles };
+  const data = { app: 'sake-collection', version: 2, exportedAt: new Date().toISOString(), lastNo: state.lastNo, bottles };
   downloadBlob(new Blob([JSON.stringify(data)], { type: 'application/json' }), `sake-collection-${todayStr()}.json`);
-  toast(`${bottles.length}件をエクスポートしました`);
+  toast(t('exported', { n: bottles.length }));
 }
 
-// インポートデータの1件を安全な形に整える
+// インポートデータの1件を安全な形に整える（旧形式の subCategory は新しい分類に変換し、元の値を保持）
 function normalizeBottle(raw) {
   const str = (v) => (v == null ? '' : String(v));
   const num = (v) => { const n = parseNum(v); return n == null ? null : n; };
   const rating = Math.round(Number(raw.rating) || 0);
-  return {
+  const cls = classifyRecord(raw);
+  const rec = {
     no: Number.isInteger(raw.no) && raw.no > 0 ? raw.no : null,
     isSample: raw.isSample === true,
     sampleNo: Number.isInteger(raw.sampleNo) ? raw.sampleNo : null,
     purchaseDate: isValidYMD(raw.purchaseDate) ? raw.purchaseDate : todayStr(),
-    name: str(raw.name).trim() || '（名称未設定）',
-    brand: str(raw.brand), category: CATEGORIES.includes(raw.category) ? raw.category : 'その他',
-    subCategory: str(raw.subCategory), country: str(raw.country), region: str(raw.region),
+    name: str(raw.name).trim() || t('unnamed'),
+    brand: str(raw.brand), category: cls.category, group: cls.group, style: cls.style,
+    country: str(raw.country), region: str(raw.region),
     volumeMl: num(raw.volumeMl), abv: num(raw.abv), priceTHB: num(raw.priceTHB), shop: str(raw.shop),
     status: STATUSES.includes(raw.status) ? raw.status : STATUSES[0],
     rating: Math.min(5, Math.max(0, rating)), memo: str(raw.memo),
     createdAt: Number(raw.createdAt) || Date.now(), updatedAt: Number(raw.updatedAt) || Date.now(),
   };
+  if (cls.legacy != null) rec.legacySubCategory = cls.legacy;
+  return rec;
 }
 
 async function importJSON(file) {
@@ -1813,20 +2327,20 @@ async function importJSON(file) {
   try {
     data = JSON.parse(await file.text());
   } catch (_) {
-    toast('JSONファイルを読み込めませんでした'); return;
+    toast(t('importBadJson')); return;
   }
-  if (!data || !Array.isArray(data.bottles)) { toast('このアプリのバックアップファイルではないようです'); return; }
+  if (!data || !Array.isArray(data.bottles)) { toast(t('importNotOurs')); return; }
 
   const mode = await ask({
-    title: 'インポート方法の選択',
-    message: `${data.bottles.length}件のデータが見つかりました。\n\n「上書き」…現在のデータをすべて削除して置き換えます。\n「追加」…現在のデータを残したまま追加します（No.は続きから振り直します）。`,
-    buttons: [{ label: 'キャンセル', value: '' }, { label: '追加', value: 'append', kind: 'primary' }, { label: '上書き', value: 'overwrite', kind: 'danger' }],
+    title: t('importModeTitle'),
+    message: t('importModeBody', { n: data.bottles.length }),
+    buttons: [{ label: t('cancel'), value: '' }, { label: t('append'), value: 'append', kind: 'primary' }, { label: t('overwrite'), value: 'overwrite', kind: 'danger' }],
   });
   if (!mode) return;
   if (mode === 'overwrite' && state.bottles.length &&
-      !(await confirmDanger('上書きの確認', `現在の${state.bottles.length}件は削除されます。よろしいですか？`, '上書きする'))) return;
+      !(await confirmDanger(t('overwriteTitle'), t('overwriteBody', { n: state.bottles.length }), t('overwriteIt')))) return;
 
-  toast('インポート中…（写真が多いと時間がかかります）');
+  toast(t('importing'));
   try {
     // 写真の変換（Base64・サムネイル生成）を先に済ませる
     const prepared = [];
@@ -1839,14 +2353,14 @@ async function importJSON(file) {
         } catch (e) { console.warn('写真をスキップしました', e); }
       }
       prepared.push({ rec, photos });
-      if (i % 10 === 9) toast(`インポート中… ${i + 1} / ${data.bottles.length}件`);
+      if (i % 10 === 9) toast(t('importingN', { i: i + 1, n: data.bottles.length }));
     }
     const overwrite = mode === 'overwrite';
     writePrepared(prepared, { replace: overwrite, keepNo: overwrite, importedLastNo: data.lastNo });
-    toast(`${prepared.length}件をインポートしました`);
+    toast(t('imported', { n: prepared.length }));
   } catch (err) {
     console.error(err);
-    toast('インポートに失敗しました：' + (err.message || err));
+    toast(t('importFailed', { e: err.message || err }));
   }
 }
 
@@ -1893,25 +2407,31 @@ function writePrepared(prepared, { replace = false, keepNo = false, importedLast
   state.lastNo = replace ? lastNo : Math.max(state.lastNo, lastNo);
 }
 
+// CSV：見出しは表示中の言語、値は保存値（日本語）のまま
 function exportCSV() {
-  if (!state.bottles.length) { toast('エクスポートするデータがありません'); return; }
+  if (!state.bottles.length) { toast(t('exportNone')); return; }
   const base = weekBaseDate();
-  const header = ['No.', 'サンプル', '購入日', '週番号', '銘柄名', 'ブランド／蒸留所・醸造所', '種別', 'サブ種別', '原産国', '産地・地域',
-    '内容量(ml)', 'アルコール度数(%)', '購入金額(THB)', '100mlあたり単価(THB)', '購入店', '状態', '評価', 'メモ', '写真枚数'];
+  const header = lang === 'en'
+    ? ['No.', 'Sample', 'Purchase date', 'Week', 'Name', 'Brand / distillery', 'Type', 'Class', 'Style', 'Old sub-type', 'Country', 'Region',
+      'Volume (ml)', 'ABV (%)', 'Price (THB)', 'Price per 100ml (THB)', 'Shop', 'Status', 'Rating', 'Memo', 'Photos']
+    : ['No.', 'サンプル', '購入日', '週番号', '銘柄名', 'ブランド／蒸留所・醸造所', '種別', '大分類', '小分類', '旧サブ種別', '原産国', '産地・地域',
+      '内容量(ml)', 'アルコール度数(%)', '購入金額(THB)', '100mlあたり単価(THB)', '購入店', '状態', '評価', 'メモ', '写真枚数'];
   const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const sorted = state.bottles.slice().sort((a, b) => SORT_VALUE.no(a) - SORT_VALUE.no(b));
   const lines = [header.map(q).join(',')];
   sorted.forEach((b) => {
     const up = unitPrice(b);
     const wn = weekNumber(b.purchaseDate, base);
-    lines.push([displayNo(b), b.isSample ? '○' : '', b.purchaseDate, wn && wn >= 1 ? `第${wn}週` : '', b.name, b.brand, b.category, b.subCategory,
+    const c = b.group === undefined ? classifyRecord(b) : b;
+    lines.push([displayNo(b), b.isSample ? t('csvSample') : '', b.purchaseDate, wn && wn >= 1 ? t('week', { n: wn }) : '', b.name, b.brand,
+      c.category, c.group, c.style, b.legacySubCategory ?? b.subCategory ?? '',
       b.country, b.region, b.volumeMl ?? '', b.abv ?? '', b.priceTHB ?? '', up == null ? '' : Math.round(up * 10) / 10,
       b.shop, b.status, b.rating || '', b.memo, (b.photos || []).length].map(q).join(','));
   });
   // Excel で文字化けしないよう UTF-8 BOM を付ける
   const blob = new Blob(['﻿' + lines.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
   downloadBlob(blob, `sake-collection-${todayStr()}.csv`);
-  toast(`${sorted.length}件をCSVに出力しました`);
+  toast(t('csvExported', { n: sorted.length }));
 }
 
 /* =========================================================
@@ -1920,19 +2440,19 @@ function exportCSV() {
    ・No. は S1〜S5 の別系統（実データの採番カウンタは使わない）
    ========================================================= */
 const SAMPLE_DATA = [
-  { days: -28, name: '響 JAPANESE HARMONY', brand: 'サントリー', category: 'ウイスキー', subCategory: 'ブレンデッド', country: '日本', region: '大阪府・山梨県',
+  { days: -28, name: '響 JAPANESE HARMONY', brand: 'サントリー', category: 'ウイスキー', group: 'ジャパニーズ', style: 'ブレンデッド', country: '日本', region: '大阪府・山梨県',
     volumeMl: 700, abv: 43, priceTHB: 3290, shop: 'Central Chidlom', status: '開栓済み', rating: 5,
     memo: '華やかで蜂蜜のような甘さ。ロックでも崩れない。', colors: ['#6b3a12', '#d08a2e'], label: '#e8d7b0' },
-  { days: -21, name: '獺祭 純米大吟醸45', brand: '旭酒造', category: '日本酒', subCategory: '純米大吟醸', country: '日本', region: '山口県',
+  { days: -21, name: '獺祭 純米大吟醸45', brand: '旭酒造', category: '日本酒', group: '吟醸・大吟醸', style: '純米大吟醸', country: '日本', region: '山口県',
     volumeMl: 720, abv: 16, priceTHB: 1450, shop: 'Fuji Super', status: '飲み切り', rating: 4,
     memo: 'フルーティーで軽やか。よく冷やして。', colors: ['#1f3a2e', '#6f9c7c'], label: '#f5f1e6' },
-  { days: -14, name: 'Cloudy Bay Sauvignon Blanc', brand: 'Cloudy Bay', category: 'ワイン', subCategory: '白ワイン', country: 'ニュージーランド', region: 'マールボロ',
+  { days: -14, name: 'Cloudy Bay Sauvignon Blanc', brand: 'Cloudy Bay', category: 'ワイン', group: '白', style: 'ソーヴィニヨン・ブラン', country: 'ニュージーランド', region: 'マールボロ',
     volumeMl: 750, abv: 13.5, priceTHB: 1390, shop: 'Villa Market', status: '未開栓', rating: 0,
     memo: '週末のシーフード用に。', colors: ['#8a8a3a', '#d6d68a'], label: '#fbfaf2' },
-  { days: -7, name: "Hendrick's Gin", brand: 'William Grant & Sons', category: 'ジン', subCategory: 'クラフトジン', country: 'スコットランド', region: 'ガーヴァン',
+  { days: -7, name: "Hendrick's Gin", brand: 'William Grant & Sons', category: 'ジン', group: 'クラフトジン', style: '', country: 'スコットランド', region: 'ガーヴァン',
     volumeMl: 700, abv: 41.4, priceTHB: 1690, shop: 'Tops', status: '開栓済み', rating: 4,
     memo: 'キュウリとバラの香り。トニックにキュウリを添えて。', colors: ['#1c1c1c', '#4a4a4a'], label: '#efe6d2' },
-  { days: 0, name: 'SangSom Special Rum', brand: 'Thai Beverage', category: 'ラム', subCategory: 'ゴールドラム', country: 'タイ', region: 'ナコーンパトム',
+  { days: 0, name: 'SangSom Special Rum', brand: 'Thai Beverage', category: 'ラム', group: 'エイジドラム', style: '', country: 'タイ', region: 'ナコーンパトム',
     volumeMl: 700, abv: 40, priceTHB: 330, shop: '7-Eleven', status: '開栓済み', rating: 3,
     memo: 'ソーダ割りでタイ料理に。コスパ抜群。', colors: ['#7a2f10', '#c46a28'], label: '#f2c14e' },
 ];
@@ -1974,7 +2494,7 @@ function drawSampleImage(s, variant) {
   x.fillText(`${s.abv}% ・ ${s.volumeMl}ml`, bx, 600);
   // フッター文字
   x.fillStyle = variant ? '#3b2618' : '#e9cf94'; x.font = '20px sans-serif';
-  x.fillText(variant ? 'サンプル画像（裏）' : 'サンプル画像', bx, 770);
+  x.fillText(variant ? t('sampleImageBack') : t('sampleImage'), bx, 770);
   return c;
 }
 function wrapText(ctx, text, maxW) {
@@ -1989,8 +2509,8 @@ function wrapText(ctx, text, maxW) {
 async function addSamples() {
   const existing = state.bottles.filter((b) => b.isSample);
   if (existing.length) {
-    const ok = await ask({ title: 'サンプルデータ', message: `サンプルが既に${existing.length}件あります。入れ直しますか？`,
-      buttons: [{ label: 'キャンセル', value: '' }, { label: '入れ直す', value: 'ok', kind: 'primary' }] });
+    const ok = await ask({ title: t('samplesTitle'), message: t('samplesExist', { n: existing.length }),
+      buttons: [{ label: t('cancel'), value: '' }, { label: t('reinsert'), value: 'ok', kind: 'primary' }] });
     if (ok !== 'ok') return;
     deleteBottles(existing);
   }
@@ -2011,24 +2531,24 @@ async function addSamples() {
     batch.set(ref, { ...fields, purchaseDate: addDays(today, s.days), no: null, isSample: true, sampleNo: i + 1, photos, createdAt: now, updatedAt: now });
   }
   commitBatch(batch);
-  toast('サンプルデータを5件投入しました');
+  toast(t('samplesAdded'));
 }
 
 async function deleteSamples() {
   const samples = state.bottles.filter((b) => b.isSample);
-  if (!samples.length) { toast('サンプルデータはありません'); return; }
-  if (!(await confirmDanger('サンプルのみ削除', `サンプルデータ${samples.length}件を削除します。\n実データは削除されません。`))) return;
+  if (!samples.length) { toast(t('noSamples')); return; }
+  if (!(await confirmDanger(t('delSamplesTitle'), t('delSamplesBody', { n: samples.length })))) return;
   deleteBottles(samples);
-  toast('サンプルデータを削除しました');
+  toast(t('samplesDeleted'));
 }
 
 async function deleteAll() {
-  if (!state.bottles.length) { toast('削除するデータがありません'); return; }
-  if (!(await confirmDanger('全データを削除', `登録済みの${state.bottles.length}件と写真をすべて削除します。\n削除前にJSONエクスポートでバックアップを取ることをおすすめします。`, '次へ'))) return;
-  if (!(await confirmDanger('最終確認', '本当にすべて削除しますか？この操作は元に戻せません。\n（No.の採番も1からやり直しになります）', 'すべて削除'))) return;
+  if (!state.bottles.length) { toast(t('nothingToDelete')); return; }
+  if (!(await confirmDanger(t('delAllTitle'), t('delAllBody', { n: state.bottles.length }), t('next')))) return;
+  if (!(await confirmDanger(t('finalTitle'), t('finalBody'), t('deleteAllIt')))) return;
   commitOps([...bottleDeleteOps(state.bottles), (batch) => batch.delete(counterRef())]);
   state.metaLastNo = 0;
-  toast('すべてのデータを削除しました');
+  toast(t('allDeleted'));
 }
 
 /* =========================================================
@@ -2074,11 +2594,6 @@ function legacyRead(ldb, store, key) {
     req.onerror = () => reject(req.error);
   });
 }
-// 確認ダイアログが開いていれば閉じるまで待つ
-async function waitAskClosed() {
-  const dlg = $('#askDialog');
-  while (dlg.open) await new Promise((r) => dlg.addEventListener('close', r, { once: true }));
-}
 
 // fromMenu：⚙メニューから実行した場合（「今後表示しない」の設定に関係なく確認する）
 async function checkLegacyMigration(fromMenu = false) {
@@ -2090,32 +2605,32 @@ async function checkLegacyMigration(fromMenu = false) {
   if (!fromMenu && flag) return;
   const myUid = uid;
   const ldb = await openLegacyDB();
-  if (!ldb) { if (fromMenu) toast('この端末に以前のデータはありません'); return; }
+  if (!ldb) { if (fromMenu) toast(t('noLocal')); return; }
   try {
     const bottles = await legacyRead(ldb, 'bottles');
-    if (!bottles.length) { if (fromMenu) toast('この端末に以前のデータはありません'); return; }
-    await waitAskClosed();
+    if (!bottles.length) { if (fromMenu) toast(t('noLocal')); return; }
     if (uid !== myUid) return;
     const samples = bottles.filter((b) => b.isSample).length;
-    const again = flag === 'done' ? '\n\n※ この端末のデータは既に移行済みです。もう一度移行すると同じ記録が重複します。' : '';
     const v = await ask({
-      title: 'クラウドへ移行しますか？',
-      message: `この端末に以前のデータが${bottles.length}件${samples ? `（うちサンプル${samples}件）` : ''}あります。\nクラウドへ移行すると、スマートフォンとPCで同期されるようになります。\n\n端末内のデータは削除されずに残ります。${again}`,
+      title: t('localTitle'),
+      message: t('localBody', {
+        n: bottles.length, samples: samples ? t('localSamples', { n: samples }) : '', again: flag === 'done' ? t('localAgain') : '',
+      }),
       buttons: [
-        ...(fromMenu ? [] : [{ label: '今後表示しない', value: 'never' }]),
-        { label: fromMenu ? 'キャンセル' : '今はしない', value: '' },
-        { label: '移行する', value: 'ok', kind: 'primary' },
+        ...(fromMenu ? [] : [{ label: t('neverShow'), value: 'never' }]),
+        { label: fromMenu ? t('cancel') : t('notNow'), value: '' },
+        { label: t('migrateIt'), value: 'ok', kind: 'primary' },
       ],
     });
     if (uid !== myUid) return;
-    if (v === 'never') { lsSet(key, 'never'); toast('あとで ⚙メニューから移行できます'); return; }
+    if (v === 'never') { lsSet(key, 'never'); toast(t('laterFromMenu')); return; }
     if (v !== 'ok') return;
     migrating = true;
     await migrateLegacy(ldb, bottles);
     lsSet(key, 'done');
   } catch (err) {
     console.error(err);
-    toast('移行に失敗しました：' + (err.message || err));
+    toast(t('localFailed', { e: err.message || err }));
   } finally {
     migrating = false;
     ldb.close();
@@ -2123,7 +2638,7 @@ async function checkLegacyMigration(fromMenu = false) {
 }
 
 async function migrateLegacy(ldb, bottles) {
-  toast('移行の準備中…（写真を変換しています）');
+  toast(t('localPreparing'));
   const photos = await legacyRead(ldb, 'photos');
   const pmap = new Map(photos.map((p) => [p.id, p]));
   const meta = await legacyRead(ldb, 'meta', 'lastNo').catch(() => null);
@@ -2138,12 +2653,12 @@ async function migrateLegacy(ldb, bottles) {
       try { list.push(await preparePhoto(p.blob)); } catch (e) { console.warn(e); skipped++; }
     }
     prepared.push({ rec, photos: list });
-    if (i % 5 === 4) toast(`移行の準備中… ${i + 1} / ${bottles.length}件`);
+    if (i % 5 === 4) toast(t('localPreparingN', { i: i + 1, n: bottles.length }));
   }
   // クラウドに実データが無ければ元の No. を引き継ぎ、あれば続きから振り直す
   const cloudHasReal = state.bottles.some((b) => !b.isSample);
   writePrepared(prepared, { keepNo: !cloudHasReal, importedLastNo: meta ? meta.value : null });
-  toast(`${prepared.length}件をクラウドへ移行しました${skipped ? `（読み込めない写真${skipped}枚を除く）` : ''}`);
+  toast(t('localDone', { n: prepared.length, skipped: skipped ? t('localSkipped', { n: skipped }) : '' }));
 }
 
 /* =========================================================
@@ -2151,6 +2666,7 @@ async function migrateLegacy(ldb, bottles) {
    Claude Code が imports/ に置いた JSON（エクスポートと同じ形式）を取り込む。
    imports/index.json … { files: ["YYYYMMDD-HHMM-<slug>.json", ...] }
    取り込み済みのファイル名は users/{uid}/meta/imports に記録し、他の端末で二重に取り込まない
+   旧形式（subCategory のみ・種別「バーボン」）のデータは、分類の自動判定で新しい形式に変換する
    ========================================================= */
 const IMPORT_FILE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*\.json$/;
 let importsChecked = false;   // ログイン後の初回確認を済ませたか
@@ -2169,7 +2685,7 @@ async function fetchImportJSON(name) {
 // サーバー上の取り込み済みファイル名（オフラインなどで取得できなければ例外）
 async function importedFileSet() {
   const snap = await getDoc(importsRef());
-  if (snap.metadata.fromCache) throw new Error('オフラインのため取り込み状況を確認できません');
+  if (snap.metadata.fromCache) throw new Error(t('importsOfflineState'));
   return new Set(snap.exists() ? (snap.data().files || []) : []);
 }
 
@@ -2188,7 +2704,7 @@ function claimImportFiles(names) {
 async function checkImports(fromMenu = false) {
   if (!uid || !state.loaded || importsBusy || migrating) return;
   if (!fromMenu && Date.now() - importsLastAt < 10000) return;   // 短時間の連続確認を避ける
-  if (!navigator.onLine) { if (fromMenu) toast('オフラインのため確認できません'); return; }
+  if (!navigator.onLine) { if (fromMenu) toast(t('offlineCantCheck')); return; }
   importsBusy = true;
   importsLastAt = Date.now();
   const myUid = uid;
@@ -2210,7 +2726,7 @@ async function checkImports(fromMenu = false) {
     for (const name of pending) {
       try {
         const data = await fetchImportJSON(name);
-        if (data?.app !== 'sake-collection' || !Array.isArray(data.bottles) || !data.bottles.length) throw new Error('形式が不正です');
+        if (data?.app !== 'sake-collection' || !Array.isArray(data.bottles) || !data.bottles.length) throw new Error(t('badFormat'));
         files.push({ name, bottles: data.bottles });
       } catch (err) {
         console.warn(`imports/${name}`, err);
@@ -2218,86 +2734,187 @@ async function checkImports(fromMenu = false) {
         if (err.status !== 404) bad.push(name);
       }
     }
-    if (bad.length) toast(`読み込めない登録データがあります：${bad.join('、')}`);
-    if (!files.length) { if (fromMenu && !bad.length) toast('新しい登録データはありません'); return; }
+    if (bad.length) toast(t('importsBad', { list: bad.join(', ') }));
+    if (!files.length) { if (fromMenu && !bad.length) toast(t('importsNone')); return; }
 
-    await waitAskClosed();
     if (uid !== myUid) return;
     const bottles = files.flatMap((f) => f.bottles);
-    const lines = bottles.slice(0, 8).map((b) => `・${String(b?.name || '（名称未設定）')}${isValidYMD(b?.purchaseDate) ? `（${b.purchaseDate}）` : ''}`);
-    if (bottles.length > 8) lines.push(`ほか${bottles.length - 8}件`);
+    const lines = bottles.slice(0, 8).map((b) => `・${String(b?.name || t('unnamed'))}${isValidYMD(b?.purchaseDate) ? `（${b.purchaseDate}）` : ''}`);
+    if (bottles.length > 8) lines.push(t('andMore', { n: bottles.length - 8 }));
     const v = await ask({
-      title: '新しい登録データ',
-      message: `新しい登録データが${bottles.length}件あります。\n\n${lines.join('\n')}\n\nNo. は続きから採番されます。`,
-      buttons: [{ label: '後で', value: '' }, { label: '取り込む', value: 'ok', kind: 'primary' }],
+      title: t('importsTitle'),
+      message: t('importsBody', { n: bottles.length, lines: lines.join('\n') }),
+      buttons: [{ label: t('later'), value: '' }, { label: t('importIt'), value: 'ok', kind: 'primary' }],
     });
     if (v !== 'ok' || uid !== myUid) return;
 
     const mine = await claimImportFiles(files.map((f) => f.name));
     const targets = files.filter((f) => mine.includes(f.name));
-    if (!targets.length) { toast('他の端末で取り込み済みです'); return; }
+    if (!targets.length) { toast(t('importsElsewhere')); return; }
     const prepared = targets.flatMap((f) => f.bottles.map((raw) => ({
       rec: { ...normalizeBottle(raw || {}), isSample: false, sampleNo: null },
       photos: [],
     })));
     // 既存のインポートの「追加」と同じ扱い（No. は続きから）
     writePrepared(prepared);
-    toast(`${prepared.length}件を取り込みました`);
+    toast(t('importsDone', { n: prepared.length }));
   } catch (err) {
     console.error(err);
-    if (fromMenu) toast('登録データを確認できませんでした：' + errText(err));
+    if (fromMenu) toast(t('importsCheckFailed', { e: errText(err) }));
   } finally {
     importsBusy = false;
   }
 }
 
 /* =========================================================
-   種別「バーボン」の追加に伴う既存記録の変換
-   種別「ウイスキー」でサブ種別がバーボン／テネシーウイスキーの記録を「バーボン」に変更する
-   （サブ種別が「バーボン」だけの場合は種別と重なるので空欄にする）
+   分類の移行（旧：種別＋サブ種別 → 新：種別／大分類／小分類）
+   大分類（group）を持たない記録を対象に、自動判定の案を一覧で表示し、
+   確認・修正のうえ［確定］で一括反映する。旧サブ種別は legacySubCategory として残す
    ========================================================= */
-let bourbonChecked = false;   // ログインごとに1回だけ確認する
-const isBourbonSub = (s) => /バーボン|bourbon/i.test(s || '');
-const isTennesseeSub = (s) => /テネシー|tennessee/i.test(s || '');
-const bourbonTargets = () => state.bottles.filter((b) =>
-  b.category === 'ウイスキー' && (isBourbonSub(b.subCategory) || isTennesseeSub(b.subCategory)));
+let taxonomyChecked = false;   // ログイン後の自動表示を済ませたか
+const tax = { rows: [], onlyAttention: false };
+const needsTaxonomy = () => state.bottles.filter((b) => b.group === undefined);
 
-async function checkBourbonCategory() {
-  if (!uid || lsGet(LS_BOURBON + uid)) return;
-  if (!bourbonTargets().length) return;
-  const myUid = uid;
-  const shown = bourbonTargets().sort((a, b) => SORT_VALUE.no(a) - SORT_VALUE.no(b));
-  const lines = shown.slice(0, 8).map((b) => `・${b.name}（${b.subCategory}）`);
-  if (shown.length > 8) lines.push(`ほか${shown.length - 8}件`);
-  const v = await ask({
-    title: '種別「バーボン」への変更',
-    message: `種別に「バーボン」を追加しました。\nサブ種別がバーボン・テネシーウイスキーの記録が${shown.length}件あります。種別を「バーボン」に変更しますか？\n\n${lines.join('\n')}\n\n※ サブ種別が「バーボン」のものは空欄にします。`,
-    buttons: [{ label: '変更しない', value: 'no' }, { label: '変更する', value: 'ok', kind: 'primary' }],
+function buildTaxRows(list) {
+  return list.slice().sort((a, b) => SORT_VALUE.no(a) - SORT_VALUE.no(b)).map((b) => {
+    const r = autoClassify(b);
+    const row = {
+      id: b.id, no: displayNo(b), name: b.name, brand: b.brand || '', legacy: b.subCategory || '',
+      origCountry: b.country || '', country: b.country || '', category: r.category, group: r.group, style: r.style, kind: r.kind,
+    };
+    const hint = MIGRATION_HINTS[b.name];
+    if (hint) Object.assign(row, hint, { kind: 'hint' });
+    return row;
   });
-  if (uid !== myUid) return;
-  if (v === 'no') { lsSet(LS_BOURBON + uid, 'declined'); return; }
-  if (v !== 'ok') return;   // 閉じた場合は次回また確認する
-  const targets = bourbonTargets();   // 確認中に他の端末で変わった場合に備えて取り直す
+}
+
+// ログイン後（force=false）は対象があるときだけ、⚙メニューからは対象がなければその旨を表示
+function openTaxonomyMigration(force = false) {
+  const list = needsTaxonomy();
+  if (!list.length) { if (force) toast(t('taxNone')); return; }
+  if ($('#taxDialog').open) return;
+  const myUid = uid;
+  enqueueDialog(() => new Promise((resolve) => {
+    if (uid !== myUid) { resolve(); return; }
+    tax.rows = buildTaxRows(needsTaxonomy());
+    if (!tax.rows.length) { resolve(); return; }
+    renderTaxonomy();
+    const dlg = $('#taxDialog');
+    dlg.addEventListener('close', () => resolve(), { once: true });
+    dlg.showModal();
+    $('#taxDialog .dlg-body').scrollTop = 0;
+  }));
+}
+
+const rowState = (r) => (!r.group ? 'blank' : r.kind === 'fallback' ? 'check' : r.kind === 'hint' ? 'hint' : 'ok');
+
+function renderTaxonomy() {
+  const counts = { blank: 0, check: 0, hint: 0 };
+  tax.rows.forEach((r) => { const s = rowState(r); if (counts[s] != null) counts[s]++; });
+  $('#taxSummary').innerHTML = `
+    <span>${esc(t('taxCount', { n: tax.rows.length }))}</span>
+    ${counts.blank ? `<span class="flag blank">${esc(t('taxBlank', { n: counts.blank }))}</span>` : ''}
+    ${counts.check ? `<span class="flag check">${esc(t('taxCheck', { n: counts.check }))}</span>` : ''}
+    ${counts.hint ? `<span class="flag hint">${esc(t('taxHint', { n: counts.hint }))}</span>` : ''}
+    <label><input type="checkbox" id="taxOnly"${tax.onlyAttention ? ' checked' : ''}> ${esc(t('taxOnlyAttention'))}</label>`;
+  $('#taxDatalists').innerHTML = TAXONOMY.map((c, i) =>
+    `<datalist id="dlTaxStyle${i}">${c.styles.map(([s]) => `<option value="${esc(tv(s))}"></option>`).join('')}</datalist>`).join('') +
+    `<datalist id="dlTaxCountry">${DEFAULT_COUNTRIES.map((c) => `<option value="${esc(tv(c))}"></option>`).join('')}</datalist>`;
+  $('#taxList').innerHTML = tax.rows.map((r, i) => {
+    const st = rowState(r);
+    if (tax.onlyAttention && st === 'ok') return '';
+    const flag = { blank: `<span class="flag blank">${esc(t('flagBlank'))}</span>`, check: `<span class="flag check">${esc(t('flagCheck'))}</span>`,
+      hint: `<span class="flag hint">${esc(t('flagHint'))}</span>`, ok: '' }[st];
+    const catOpts = CATEGORIES.map((c) => `<option value="${esc(c)}"${c === r.category ? ' selected' : ''}>${esc(tv(c))}</option>`).join('');
+    const grpOpts = `<option value="">${esc(t('groupNone'))}</option>` +
+      groupsOf(r.category).map((g) => `<option value="${esc(g)}"${g === r.group ? ' selected' : ''}>${esc(tv(g))}</option>`).join('');
+    return `<div class="tax-row is-${st}" data-i="${i}">
+      <div class="tax-head"><span class="no">No.${esc(r.no)}</span><strong>${esc(r.name)}</strong>${r.brand ? `<span class="meta-line">${esc(r.brand)}</span>` : ''}${flag}</div>
+      <div class="tax-meta">${esc(t('legacyLabel'))}：${esc(r.legacy || t('noneValue'))}${r.origCountry !== r.country ? ` ・ ${esc(t('country'))}：${esc(tv(r.origCountry) || t('noneValue'))} → ${esc(tv(r.country))}` : ''}</div>
+      <div class="tax-fields">
+        <div><label>${esc(t('category'))}</label><select data-f="category">${catOpts}</select></div>
+        <div class="${r.group ? '' : 'blank'}"><label>${esc(t('group'))}</label><select data-f="group">${grpOpts}</select></div>
+        <div><label>${esc(t('style'))}</label><input type="text" data-f="style" value="${esc(tv(r.style))}" list="dlTaxStyle${CATEGORIES.indexOf(r.category)}" autocomplete="off"></div>
+        <div><label>${esc(t('country'))}</label><input type="text" data-f="country" value="${esc(tv(r.country))}" list="dlTaxCountry" autocomplete="off"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setupTaxonomy() {
+  const dlg = $('#taxDialog');
+  dlg.addEventListener('change', (e) => {
+    if (e.target.id === 'taxOnly') { tax.onlyAttention = e.target.checked; renderTaxonomy(); return; }
+    const el = e.target.closest('[data-f]');
+    const rowEl = e.target.closest('.tax-row');
+    if (!el || !rowEl) return;
+    const r = tax.rows[Number(rowEl.dataset.i)];
+    const f = el.dataset.f;
+    if (f === 'category') { r.category = el.value; r.group = ''; r.kind = 'manual'; }
+    else if (f === 'group') { r.group = el.value; r.kind = 'manual'; }
+    else if (f === 'style') r.style = fromDisplay(el.value.trim());
+    else if (f === 'country') r.country = fromDisplay(el.value.trim());
+    if (f === 'category' || f === 'group') renderTaxonomy();
+  });
+  // Esc で閉じた場合も［後で］と同じ扱い
+  dlg.addEventListener('cancel', () => toast(t('taxLaterToast')));
+  $('#taxLater').addEventListener('click', () => { dlg.close(); toast(t('taxLaterToast')); });
+  $('#taxConfirm').addEventListener('click', async () => {
+    // 入力途中の値（change 前）も拾う
+    $$('.tax-row', dlg).forEach((rowEl) => {
+      const r = tax.rows[Number(rowEl.dataset.i)];
+      r.style = fromDisplay($('[data-f="style"]', rowEl).value.trim());
+      r.country = fromDisplay($('[data-f="country"]', rowEl).value.trim());
+    });
+    const blanks = tax.rows.filter((r) => !r.group).length;
+    dlg.close();
+    if (blanks) {
+      const v = await ask({ title: t('taxTitle'), message: t('taxConfirmBlank', { n: blanks }),
+        buttons: [{ label: t('cancel'), value: '' }, { label: t('taxConfirmIt'), value: 'ok', kind: 'primary' }] });
+      if (v !== 'ok') { reopenTaxonomy(); return; }
+    }
+    applyTaxonomy();
+  });
+}
+// 確認をキャンセルしたときは、編集中の内容のまま画面に戻る
+function reopenTaxonomy() {
+  enqueueDialog(() => new Promise((resolve) => {
+    renderTaxonomy();
+    const dlg = $('#taxDialog');
+    dlg.addEventListener('close', () => resolve(), { once: true });
+    dlg.showModal();
+  }));
+}
+
+function applyTaxonomy() {
   const now = Date.now();
-  commitOps(targets.map((b) => (batch) => batch.update(bottleRef(b.id), {
-    category: 'バーボン',
-    subCategory: /^\s*(バーボン|bourbon)\s*$/i.test(b.subCategory) ? '' : b.subCategory,
-    updatedAt: now,
-  })));
-  toast(`${targets.length}件の種別を「バーボン」に変更しました`);
+  const ops = [];
+  tax.rows.forEach((r) => {
+    const b = state.bottles.find((x) => x.id === r.id);
+    if (!b || b.group !== undefined) return;   // 確認中に削除・移行済みになったもの
+    const update = {
+      category: r.category, group: groupsOf(r.category).includes(r.group) ? r.group : '', style: r.style || '',
+      subCategory: deleteField(), updatedAt: now,
+    };
+    if (b.subCategory) update.legacySubCategory = b.subCategory;
+    if (r.country !== (b.country || '')) update.country = r.country;
+    ops.push((batch) => batch.update(bottleRef(r.id), update));
+  });
+  commitOps(ops);
+  toast(t('taxDone', { n: ops.length }));
 }
 
 /* =========================================================
    ログイン／ログアウト
    ========================================================= */
 const AUTH_ERRORS = {
-  'auth/invalid-email': 'メールアドレスの形式が正しくありません',
-  'auth/invalid-credential': 'メールアドレスまたはパスワードが違います',
-  'auth/wrong-password': 'メールアドレスまたはパスワードが違います',
-  'auth/user-not-found': 'メールアドレスまたはパスワードが違います',
-  'auth/user-disabled': 'このアカウントは無効になっています',
-  'auth/too-many-requests': 'ログインの試行回数が多すぎます。しばらく待ってからお試しください',
-  'auth/network-request-failed': '通信できませんでした。電波の良い場所でお試しください',
+  'auth/invalid-email': 'authInvalidEmail',
+  'auth/invalid-credential': 'authInvalidCred',
+  'auth/wrong-password': 'authInvalidCred',
+  'auth/user-not-found': 'authInvalidCred',
+  'auth/user-disabled': 'authDisabled',
+  'auth/too-many-requests': 'authTooMany',
+  'auth/network-request-failed': 'authNetwork',
 };
 
 async function login(e) {
@@ -2306,29 +2923,28 @@ async function login(e) {
   const pass = $('#loginPass').value;
   const err = $('#loginErr');
   err.hidden = true;
-  if (!email || !pass) { err.textContent = 'メールアドレスとパスワードを入力してください'; err.hidden = false; return; }
+  if (!email || !pass) { err.textContent = t('loginEmpty'); err.hidden = false; return; }
   $('#loginBtn').disabled = true;
-  $('#loginBtn').textContent = 'ログイン中…';
+  $('#loginBtn').textContent = t('loggingIn');
   try {
     await signInWithEmailAndPassword(auth, email, pass);
     $('#loginPass').value = '';
   } catch (ex) {
     console.warn(ex);
-    err.textContent = AUTH_ERRORS[ex.code] || `ログインできませんでした（${ex.code || ex.message}）`;
+    err.textContent = AUTH_ERRORS[ex.code] ? t(AUTH_ERRORS[ex.code]) : t('loginFailed', { code: ex.code || ex.message });
     err.hidden = false;
   } finally {
     $('#loginBtn').disabled = false;
-    $('#loginBtn').textContent = 'ログイン';
+    $('#loginBtn').textContent = t('login');
   }
 }
 
 async function logout() {
   const pending = sync.pendingOps > 0 || sync.pendingWrites;
   const v = await ask({
-    title: 'ログアウト',
-    message: `${auth.currentUser?.email || ''} からログアウトしますか？` +
-      (pending ? '\n\nまだクラウドに送信されていない変更があります。次に同じアカウントでログインしたときに送信されます。' : ''),
-    buttons: [{ label: 'キャンセル', value: '' }, { label: 'ログアウト', value: 'ok', kind: 'primary' }],
+    title: t('logout'),
+    message: t('logoutBody', { email: auth.currentUser?.email || '' }) + (pending ? t('logoutPending') : ''),
+    buttons: [{ label: t('cancel'), value: '' }, { label: t('logout'), value: 'ok', kind: 'primary' }],
   });
   if (v !== 'ok') return;
   await signOut(auth);
@@ -2336,13 +2952,14 @@ async function logout() {
 
 function onAuthChanged(user) {
   unsubscribeAll();
-  ['#editDialog', '#viewerDialog', '#askDialog'].forEach((sel) => { const d = $(sel); if (d.open) d.close(); });
+  ['#editDialog', '#viewerDialog', '#askDialog', '#taxDialog'].forEach((sel) => { const d = $(sel); if (d.open) d.close(); });
   Object.assign(state, { bottles: [], loaded: false, metaLastNo: 0, lastNo: 0 });
   Object.assign(sync, { pendingWrites: false, fromCache: true });
   photoDataCache.clear();
   migrationChecked = false;
   importsChecked = false;
-  bourbonChecked = false;
+  importsLastAt = 0;
+  taxonomyChecked = false;
   uid = user ? user.uid : null;
   document.body.dataset.auth = user ? 'in' : 'out';
   if (user) {
@@ -2356,19 +2973,41 @@ function onAuthChanged(user) {
 }
 
 /* =========================================================
-   テーマ（ライト／ダーク）と表示設定の保存
+   テーマ（ライト／ダーク）・表示言語・表示設定の保存
    ========================================================= */
 function lsGet(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* 保存できなくても動作は継続 */ } }
 
 function currentTheme() {
-  const t = document.documentElement.dataset.theme;
-  if (t) return t;
+  const t2 = document.documentElement.dataset.theme;
+  if (t2) return t2;
   return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
-function applyTheme(t) {
-  if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+function applyTheme(th) {
+  if (th === 'light' || th === 'dark') document.documentElement.dataset.theme = th;
   $('#themeBtn').textContent = currentTheme() === 'dark' ? '☾' : '☀';
+}
+
+// 表示言語を切り替え、画面の文言と描画済みの内容を作り直す
+function applyLang(l) {
+  lang = l === 'en' ? 'en' : 'ja';
+  document.documentElement.lang = lang;
+  document.title = t('appTitle');
+  $$('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  $$('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+  $$('[data-i18n-title]').forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+  $$('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+  $('#bootMsg').textContent = t('loading');
+  renderFormOptions();
+  renderSync();
+  renderAll();
+  if ($('#taxDialog').open) renderTaxonomy();
+  if ($('#editDialog').open) $('#editTitle').textContent = form.editingId ? t('editTitleEdit') : t('editTitleNew');
+}
+function toggleLang() {
+  const next = lang === 'en' ? 'ja' : 'en';
+  lsSet(LS_LANG, next);
+  applyLang(next);
 }
 
 /* =========================================================
@@ -2376,9 +3015,9 @@ function applyTheme(t) {
    ========================================================= */
 function setupEvents() {
   // タブ切替
-  $$('.tab').forEach((t) => t.addEventListener('click', () => {
-    state.tab = t.dataset.tab;
-    $$('.tab').forEach((x) => x.setAttribute('aria-selected', String(x === t)));
+  $$('.tab').forEach((tab) => tab.addEventListener('click', () => {
+    state.tab = tab.dataset.tab;
+    $$('.tab').forEach((x) => x.setAttribute('aria-selected', String(x === tab)));
     $('#listTab').hidden = state.tab !== 'list';
     $('#statsTab').hidden = state.tab !== 'stats';
     if (state.tab === 'stats') renderStats();
@@ -2390,7 +3029,14 @@ function setupEvents() {
     clearTimeout(qTimer);
     qTimer = setTimeout(() => { state.q = e.target.value; renderList(); }, 150);
   });
-  $('#fCategory').addEventListener('change', (e) => { state.fCategory = e.target.value; renderList(); });
+  $('#fCategory').addEventListener('change', (e) => {
+    state.fCategory = e.target.value;
+    // 選んだ種別に含まれない大分類の絞り込みは解除する
+    if (state.fGroup && state.fCategory && !groupsOf(state.fCategory).includes(state.fGroup)) state.fGroup = '';
+    renderFilters();
+    renderList();
+  });
+  $('#fGroup').addEventListener('change', (e) => { state.fGroup = e.target.value; renderList(); });
   $('#fCountry').addEventListener('change', (e) => { state.fCountry = e.target.value; renderList(); });
   $('#fStatus').addEventListener('change', (e) => { state.fStatus = e.target.value; renderList(); });
   $('#sortSel').addEventListener('change', (e) => {
@@ -2421,6 +3067,19 @@ function setupEvents() {
     if (v) { openViewer(v.dataset.viewer); return; }
     const item = e.target.closest('[data-id]');
     if (item) openForm(state.bottles.find((b) => b.id === item.dataset.id));
+  });
+
+  // 集計表：種別の行をタップ（Enter）で大分類の内訳を開閉
+  const toggleCat = (row) => {
+    const cat = row.dataset.cat;
+    if (state.statsOpen.has(cat)) state.statsOpen.delete(cat); else state.statsOpen.add(cat);
+    renderStats();
+    $(`#catTable tr.cat-row[data-cat="${CSS.escape(cat)}"]`)?.focus();
+  };
+  $('#catTable').addEventListener('click', (e) => { const row = e.target.closest('tr.cat-row'); if (row) toggleCat(row); });
+  $('#catTable').addEventListener('keydown', (e) => {
+    const row = e.target.closest('tr.cat-row');
+    if (row && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleCat(row); }
   });
 
   // ヘッダー
@@ -2455,7 +3114,9 @@ function setupEvents() {
       'delete-samples': deleteSamples,
       'delete-all': deleteAll,
       'migrate': () => checkLegacyMigration(true),
+      'taxonomy': () => openTaxonomyMigration(true),
       'check-imports': () => checkImports(true),
+      'lang': toggleLang,
       'logout': logout,
     })[btn.dataset.action]();
   });
@@ -2465,21 +3126,22 @@ function setupEvents() {
     if (f) importJSON(f);
   });
 
-  // ダイアログの背景クリックで閉じる（編集フォームは誤操作防止のため閉じない）
+  // ダイアログの背景クリックで閉じる（編集フォーム・移行画面は誤操作防止のため閉じない）
   $('#askDialog').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close(''); });
   $$('#viewerDialog [data-close]').forEach((b) => b.addEventListener('click', () => $('#viewerDialog').close()));
 
-  // ログイン
+  // ログイン画面
   $('#loginForm').addEventListener('submit', login);
+  $('#authScreen [data-action="lang"]').addEventListener('click', toggleLang);
 
   // 通信状態の変化を同期表示に反映
   window.addEventListener('online', () => { markConnecting(); renderSync(); });
+  window.addEventListener('offline', renderSync);
 
   // アプリを開き直したとき（前面に戻ったとき）に新しい登録データを確認
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') checkImports();
   });
-  window.addEventListener('offline', renderSync);
 
   // 画面幅が変わったらグラフを描き直す
   let rTimer = null;
@@ -2500,6 +3162,8 @@ async function init() {
   setupEvents();
   setupForm();
   setupViewer();
+  setupTaxonomy();
+  applyLang(lsGet(LS_LANG) || 'ja');
 
   // オフラインでも起動できるよう Service Worker を登録（GitHub Pages などの https 環境のみ）
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
