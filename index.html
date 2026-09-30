@@ -768,13 +768,31 @@ const PHOTO_MAX_BYTES = 900 * 1024;             // 写真1枚（Base64）の上�
 const THUMB_MAX_SIDE = 360;    // サムネイル：長辺px（一覧用に軽量化）
 const THUMB_QUALITY = 0.7;
 const BATCH_LIMIT = 400;       // 1回の一括書き込みの件数上限（Firestore の上限は500）
-const DEFAULT_COUNTRIES = ['日本', 'スコットランド', 'アイルランド', 'アメリカ', 'カナダ', 'イギリス', 'フランス', 'イタリア', 'スペイン', 'ポルトガル', 'ドイツ', 'オランダ', 'ベルギー', 'メキシコ', 'キューバ', 'ジャマイカ', 'タイ', 'フィリピン', '台湾', '韓国', '中国', 'インド', 'オーストラリア', 'ニュージーランド', 'チリ', 'アルゼンチン', '南アフリカ', 'ロシア', 'ポーランド'];
+const DEFAULT_COUNTRIES = ['日本', 'スコットランド', 'アイルランド', 'アメリカ', 'カナダ', 'イギリス', 'フランス', 'イタリア', 'スペイン', 'ポルトガル', 'ドイツ', 'オランダ', 'ベルギー', 'メキシコ', 'キューバ', 'ジャマイカ', 'プエルトリコ', 'タイ', 'フィリピン', '台湾', '韓国', '中国', 'インド', 'オーストラリア', 'ニュージーランド', 'チリ', 'アルゼンチン', '南アフリカ', 'ロシア', 'ポーランド'];
 const COUNTRY_EN = {
   '日本': 'Japan', 'スコットランド': 'Scotland', 'アイルランド': 'Ireland', 'アメリカ': 'USA', 'カナダ': 'Canada', 'イギリス': 'UK',
   'フランス': 'France', 'イタリア': 'Italy', 'スペイン': 'Spain', 'ポルトガル': 'Portugal', 'ドイツ': 'Germany', 'オランダ': 'Netherlands',
   'ベルギー': 'Belgium', 'メキシコ': 'Mexico', 'キューバ': 'Cuba', 'ジャマイカ': 'Jamaica', 'タイ': 'Thailand', 'フィリピン': 'Philippines',
   '台湾': 'Taiwan', '韓国': 'South Korea', '中国': 'China', 'インド': 'India', 'オーストラリア': 'Australia', 'ニュージーランド': 'New Zealand',
   'チリ': 'Chile', 'アルゼンチン': 'Argentina', '南アフリカ': 'South Africa', 'ロシア': 'Russia', 'ポーランド': 'Poland',
+  'プエルトリコ': 'Puerto Rico',
+  // 入力候補には出さないが、入力された場合に英語で表示するための対訳（お酒の主な産地）
+  'イングランド': 'England', 'ウェールズ': 'Wales', '北アイルランド': 'Northern Ireland', 'アメリカ合衆国': 'USA', '米国': 'USA', '英国': 'UK',
+  'ドミニカ共和国': 'Dominican Republic', 'バルバドス': 'Barbados', 'トリニダード・トバゴ': 'Trinidad and Tobago', 'ガイアナ': 'Guyana',
+  'ベネズエラ': 'Venezuela', 'グアテマラ': 'Guatemala', 'ニカラグア': 'Nicaragua', 'パナマ': 'Panama', 'コスタリカ': 'Costa Rica',
+  'ハイチ': 'Haiti', 'マルティニーク': 'Martinique', 'グアドループ': 'Guadeloupe', 'バハマ': 'Bahamas', 'ベリーズ': 'Belize',
+  'セントルシア': 'Saint Lucia', 'グレナダ': 'Grenada', 'アンティグア・バーブーダ': 'Antigua and Barbuda', 'モーリシャス': 'Mauritius',
+  'ブラジル': 'Brazil', 'ペルー': 'Peru', 'コロンビア': 'Colombia', 'エクアドル': 'Ecuador', 'ボリビア': 'Bolivia', 'ウルグアイ': 'Uruguay',
+  'オーストリア': 'Austria', 'スイス': 'Switzerland', 'スウェーデン': 'Sweden', 'デンマーク': 'Denmark', 'ノルウェー': 'Norway',
+  'フィンランド': 'Finland', 'アイスランド': 'Iceland', 'ギリシャ': 'Greece', 'ハンガリー': 'Hungary', 'チェコ': 'Czech Republic',
+  'スロバキア': 'Slovakia', 'ルーマニア': 'Romania', 'ブルガリア': 'Bulgaria', 'クロアチア': 'Croatia', 'セルビア': 'Serbia',
+  'スロベニア': 'Slovenia', 'ウクライナ': 'Ukraine', 'ベラルーシ': 'Belarus', 'リトアニア': 'Lithuania', 'ラトビア': 'Latvia',
+  'エストニア': 'Estonia', 'ルクセンブルク': 'Luxembourg', 'モルドバ': 'Moldova', 'ジョージア': 'Georgia', 'アルメニア': 'Armenia',
+  'トルコ': 'Turkey', 'キプロス': 'Cyprus', 'マルタ': 'Malta', 'イスラエル': 'Israel', 'レバノン': 'Lebanon',
+  'ベトナム': 'Vietnam', 'ラオス': 'Laos', 'カンボジア': 'Cambodia', 'ミャンマー': 'Myanmar', 'マレーシア': 'Malaysia',
+  'シンガポール': 'Singapore', 'インドネシア': 'Indonesia', '香港': 'Hong Kong', 'マカオ': 'Macau', 'モンゴル': 'Mongolia',
+  'ネパール': 'Nepal', 'スリランカ': 'Sri Lanka', 'パキスタン': 'Pakistan', 'ブータン': 'Bhutan', '北朝鮮': 'North Korea',
+  'フィジー': 'Fiji', 'ケニア': 'Kenya', 'ナイジェリア': 'Nigeria', 'モロッコ': 'Morocco', 'エジプト': 'Egypt',
 };
 const SORT_KEYS = ['purchaseDate:desc', 'purchaseDate:asc', 'no:desc', 'no:asc', 'priceTHB:desc', 'priceTHB:asc', 'unitPrice:desc', 'rating:desc', 'abv:desc', 'name:asc', 'category:asc'];
 const LS_THEME = 'sakeCollection.theme';
@@ -980,7 +998,9 @@ const VALUE_EN = new Map([
   ['ボトル正面', 'Front'], ['ラベル裏', 'Back label'],
   ...Object.entries(COUNTRY_EN),
 ]);
-const VALUE_JA = new Map([...VALUE_EN].map(([ja, en]) => [en.toLowerCase(), ja]));
+// 英語 → 保存値。同じ英語に複数の日本語がある場合（USA ← アメリカ／米国など）は先に登録した方（入力候補の表記）を使う
+const VALUE_JA = new Map();
+VALUE_EN.forEach((en, ja) => { if (!VALUE_JA.has(en.toLowerCase())) VALUE_JA.set(en.toLowerCase(), ja); });
 const tv = (v) => (lang === 'en' && v ? (VALUE_EN.get(v) || v) : (v ?? ''));
 // 入力欄の値（英語表示の候補から選んだ場合）→ 保存値（日本語）
 const fromDisplay = (v) => (lang === 'en' && v ? (VALUE_JA.get(v.trim().toLowerCase()) || v) : v);
