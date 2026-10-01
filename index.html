@@ -945,6 +945,8 @@ const I18N = {
     viewOnly: '閲覧専用', viewDetail: '記録の詳細', viewConnecting: '共有されたコレクションを読み込んでいます…',
     viewInvalid: 'このリンクは現在無効です。<br>共有が停止されたか、リンクが作り直された可能性があります。<br>共有した人に新しいリンクを確認してください。',
     viewOffline: '接続できませんでした。電波の良い場所で再読み込みしてください。',
+    viewNotReady: '閲覧用リンクの準備ができていません。<br>共有した人に「Firebase の匿名ログインを有効にする設定」が済んでいるか確認してもらってください。',
+    reload: '再読み込み',
     mShare: '共有', shareMenu: '閲覧用リンクの共有',
     shareDesc: 'リンクを知っている人が、ログインせずにコレクションを閲覧できます（一覧・集計・写真）。閲覧した人は追加・編集・削除はできません。登録や編集の内容は、開いている相手の画面にもそのまま反映されます。',
     shareEnable: 'リンクでの閲覧を許可する', copy: 'コピー', copied: 'リンクをコピーしました', shareSend: '共有…',
@@ -1045,6 +1047,8 @@ const I18N = {
     viewOnly: 'View only', viewDetail: 'Bottle details', viewConnecting: 'Loading the shared collection…',
     viewInvalid: 'This link is not active.<br>Sharing may have been turned off, or the link was replaced.<br>Please ask the owner for a new link.',
     viewOffline: 'Could not connect. Please reload where the connection is better.',
+    viewNotReady: 'This link is not ready yet.<br>Please ask the owner to enable anonymous sign-in in Firebase.',
+    reload: 'Reload',
     mShare: 'Sharing', shareMenu: 'Share a view-only link',
     shareDesc: 'Anyone with the link can view your collection (list, stats and photos) without signing in. Viewers cannot add, edit or delete anything. Your changes appear on their screen as you make them.',
     shareEnable: 'Allow viewing with the link', copy: 'Copy', copied: 'Link copied', shareSend: 'Share…',
@@ -1287,7 +1291,7 @@ function unsubscribeAll() {
 function onListenError(err) {
   console.error(err);
   // 閲覧専用モードで読めなくなった＝共有の停止またはリンクの作り直し
-  if (VIEW) { showViewError(err?.code === 'permission-denied' ? 'viewInvalid' : 'viewOffline'); return; }
+  if (VIEW) { showViewError(viewErrorKey(err), err?.code); return; }
   toast(err?.code === 'permission-denied' ? t('listenDenied') : t('listenFailed', { e: errText(err) }));
 }
 
@@ -3097,23 +3101,35 @@ async function verifyViewAccess() {
     if (err?.code === 'permission-denied') showViewError('viewInvalid');
   }
 }
-function showViewError(key) {
+// 原因が分かるよう、エラーコードと再読み込みボタンを添えて表示する
+function showViewError(key, code = '') {
   clearInterval(viewCheckTimer);
   unsubscribeAll();
   document.body.dataset.auth = 'loading';
-  $('#bootMsg').innerHTML = t(key);
+  $('#bootMsg').innerHTML = `${t(key)}${code ? `<br><small style="opacity:.6">(${esc(code)})</small>` : ''}` +
+    `<br><button type="button" class="btn" onclick="location.reload()">${esc(t('reload'))}</button>`;
 }
+// エラーの種類から表示する文言を決める
+function viewErrorKey(err) {
+  const code = err?.code || '';
+  if (code === 'permission-denied') return 'viewInvalid';
+  // 匿名ログインが Firebase で有効になっていない
+  if (['auth/operation-not-allowed', 'auth/admin-restricted-operation'].includes(code)) return 'viewNotReady';
+  return 'viewOffline';
+}
+const withTimeout = (promise, ms) => Promise.race([promise,
+  new Promise((_, reject) => setTimeout(() => reject(Object.assign(new Error('timeout'), { code: 'timeout' })), ms))]);
 async function onViewerAuth(user) {
   if (!user) {
-    try { await signInAnonymously(auth); } catch (err) { console.error(err); showViewError('viewOffline'); }
+    try { await signInAnonymously(auth); } catch (err) { console.error(err); showViewError(viewErrorKey(err), err?.code || err?.message); }
     return;   // ログインできると、もう一度この関数が呼ばれる
   }
   $('#bootMsg').textContent = t('viewConnecting');
   try {
-    await setDoc(doc(db, 'users', VIEW.uid, 'viewers', user.uid), { token: VIEW.token, createdAt: Date.now() });
+    await withTimeout(setDoc(doc(db, 'users', VIEW.uid, 'viewers', user.uid), { token: VIEW.token, createdAt: Date.now() }), 15000);
   } catch (err) {
     console.warn(err);
-    showViewError(err?.code === 'permission-denied' ? 'viewInvalid' : 'viewOffline');
+    showViewError(viewErrorKey(err), err?.code || err?.message);
     return;
   }
   uid = VIEW.uid;
