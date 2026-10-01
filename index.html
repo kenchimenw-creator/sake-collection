@@ -380,7 +380,19 @@ textarea { min-height: 90px; resize: vertical; }
 .linkbtn { background: none; border: 0; color: var(--accent); text-decoration: underline; font-size: 13px; padding: 4px; }
 
 /* ===== 起動中・ログイン画面 ===== */
-body:not([data-auth="in"]) :is(.app-header, .tabs, main) { display: none; }
+body:not([data-auth="in"]):not([data-auth="view"]) :is(.app-header, .tabs, main) { display: none; }
+/* 閲覧用リンク（閲覧専用モード）では編集系の操作を隠す */
+body[data-auth="view"] .owner-only { display: none !important; }
+body:not([data-auth="view"]) .view-only { display: none !important; }
+.view-badge { font-size: 11px; border: 1px solid rgba(201, 164, 92, .6); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+#editForm fieldset:disabled :is(input, select, textarea) { opacity: 1; color: var(--text); -webkit-text-fill-color: var(--text); background: var(--surface-2); }
+#shareDialog { max-width: min(520px, calc(100vw - 24px)); }
+.share-toggle { display: flex; align-items: center; gap: 10px; font-weight: 600; margin-bottom: 10px; }
+.share-toggle input { width: 20px; height: 20px; accent-color: var(--accent); }
+.share-link { display: flex; gap: 8px; margin: 10px 0; }
+.share-link input { flex: 1; min-width: 0; font-size: 13px; }
+.share-note { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+.share-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 body:not([data-auth="out"]) #authScreen { display: none; }
 body:not([data-auth="loading"]) #bootScreen { display: none; }
 .boot { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; text-align: center; color: var(--text-2); padding: 16px; }
@@ -482,18 +494,25 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
       <span data-i18n="appTitle">お酒コレクション</span> <small>MY BOTTLE LOG</small>
     </h1>
     <span class="sync" id="syncBadge" data-state="syncing" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span class="txt"></span></span>
+    <span class="view-badge view-only" data-i18n="viewOnly">閲覧専用</span>
   </div>
-  <button class="hbtn primary" id="addBtn" type="button">＋<span class="lbl" data-i18n="add">新規追加</span></button>
+  <button class="hbtn primary owner-only" id="addBtn" type="button">＋<span class="lbl" data-i18n="add">新規追加</span></button>
   <button class="hbtn" id="themeBtn" type="button" data-i18n-title="themeToggle" data-i18n-aria="themeToggle">☀</button>
   <div class="menu-wrap">
     <button class="hbtn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false" data-i18n-title="menu" data-i18n-aria="menu">⚙</button>
     <div class="menu" id="menu" hidden>
-      <div class="menu-label" data-i18n="mAccount">アカウント</div>
-      <div class="menu-account" id="accountEmail"></div>
-      <button type="button" data-action="logout" data-i18n="logout">ログアウト</button>
-      <hr>
+      <div class="owner-only">
+        <div class="menu-label" data-i18n="mAccount">アカウント</div>
+        <div class="menu-account" id="accountEmail"></div>
+        <button type="button" data-action="logout" data-i18n="logout">ログアウト</button>
+        <hr>
+        <div class="menu-label" data-i18n="mShare">共有</div>
+        <button type="button" data-action="share" data-i18n="shareMenu">閲覧用リンクの共有</button>
+        <hr>
+      </div>
       <div class="menu-label" data-i18n="mLanguage">表示言語</div>
       <button type="button" data-action="lang" data-i18n="langSwitch">English</button>
+      <div class="owner-only">
       <hr>
       <div class="menu-label" data-i18n="mBackup">バックアップ</div>
       <button type="button" data-action="export-json" data-i18n="exportJson">JSONエクスポート（写真含む）</button>
@@ -512,6 +531,7 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
       <button type="button" data-action="migrate" data-i18n="migrateLocal">この端末のデータをクラウドへ移行</button>
       <hr>
       <button type="button" data-action="delete-all" class="danger" data-i18n="deleteAll">全データを削除</button>
+      </div>
     </div>
   </div>
   <input type="file" id="importFile" accept="application/json,.json" hidden>
@@ -655,6 +675,27 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
   </div>
 </dialog>
 
+<!-- ===== 閲覧用リンクの共有 ===== -->
+<dialog id="shareDialog" aria-labelledby="shareTitle">
+  <div class="dlg-head">
+    <h2 id="shareTitle" data-i18n="shareMenu">閲覧用リンクの共有</h2>
+    <button type="button" class="icon-btn" data-close data-i18n-aria="close">×</button>
+  </div>
+  <div class="dlg-body">
+    <p class="tax-intro" data-i18n="shareDesc"></p>
+    <label class="share-toggle"><input type="checkbox" id="shareEnabled"> <span data-i18n="shareEnable">リンクでの閲覧を許可する</span></label>
+    <div id="shareBody">
+      <div class="share-link"><input type="text" id="shareUrl" readonly><button type="button" class="btn" id="shareCopy" data-i18n="copy">コピー</button></div>
+      <div class="share-actions">
+        <button type="button" class="btn primary" id="shareSend" data-i18n="shareSend">共有…</button>
+        <button type="button" class="btn danger" id="shareRegen" data-i18n="regenerate">リンクを作り直す</button>
+      </div>
+      <p class="share-note" data-i18n="shareNote"></p>
+    </div>
+    <p class="share-note" id="shareOffNote" data-i18n="shareOffNote"></p>
+  </div>
+</dialog>
+
 <!-- ===== 写真ビューア ===== -->
 <dialog id="viewerDialog" aria-labelledby="viewerTitle">
   <div class="dlg-head">
@@ -693,11 +734,12 @@ body:not([data-auth="loading"]) #bootScreen { display: none; }
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
 import {
   initializeAuth, indexedDBLocalPersistence, browserLocalPersistence,
-  onAuthStateChanged, signInWithEmailAndPassword, signOut,
+  onAuthStateChanged, signInWithEmailAndPassword, signOut, signInAnonymously,
 } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
 import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
-  collection, doc, onSnapshot, getDoc, getDocFromCache, writeBatch, runTransaction, deleteField,
+  collection, doc, onSnapshot, getDoc, getDocFromCache, getDocs, getDocsFromServer, setDoc, query, limit,
+  writeBatch, runTransaction, deleteField,
 } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 window.__sakeAppReady = true;
@@ -710,12 +752,18 @@ const firebaseConfig = {
   messagingSenderId: '395417760720',
   appId: '1:395417760720:web:2d68dc24cd1e3d2c897fd5',
 };
-const fbApp = initializeApp(firebaseConfig);
+// 閲覧用リンク（?view=<持ち主のuid>~<合言葉>）で開いた場合は閲覧専用モード
+const VIEW = (() => {
+  const m = /^([A-Za-z0-9]{10,128})~([A-Za-z0-9_-]{16,128})$/.exec(new URLSearchParams(location.search).get('view') || '');
+  return m ? { uid: m[1], token: m[2] } : null;
+})();
+// 閲覧専用モードは別のアプリ名で初期化する（同じ端末で本人がログインしていても、その状態に影響しない）
+const fbApp = initializeApp(firebaseConfig, VIEW ? 'viewer' : '[DEFAULT]');
 // ログイン状態は端末に保存（iPhone のホーム画面アプリでも IndexedDB に保持される）
 const auth = initializeAuth(fbApp, { persistence: [indexedDBLocalPersistence, browserLocalPersistence] });
-// オフライン永続キャッシュ：電波がなくても読み書きでき、復帰後に自動で同期される
+// オフライン永続キャッシュ：電波がなくても読み書きでき、復帰後に自動で同期される（閲覧専用モードでは使わない）
 const db = initializeFirestore(fbApp, {
-  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+  ...(VIEW ? {} : { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }),
   ignoreUndefinedProperties: true,
 });
 
@@ -894,6 +942,17 @@ const I18N = {
     taxNone: '移行が必要な記録はありません', taxDone: '{n}件の分類を更新しました', taxConfirmBlank: '大分類が空欄の記録が{n}件あります。このまま確定しますか？（あとで編集画面から設定できます）',
     taxConfirmIt: '確定する', taxLaterToast: 'あとで ⚙メニューの「分類の移行」から開けます',
     csvSample: '○',
+    viewOnly: '閲覧専用', viewDetail: '記録の詳細', viewConnecting: '共有されたコレクションを読み込んでいます…',
+    viewInvalid: 'このリンクは現在無効です。<br>共有が停止されたか、リンクが作り直された可能性があります。<br>共有した人に新しいリンクを確認してください。',
+    viewOffline: '接続できませんでした。電波の良い場所で再読み込みしてください。',
+    mShare: '共有', shareMenu: '閲覧用リンクの共有',
+    shareDesc: 'リンクを知っている人が、ログインせずにコレクションを閲覧できます（一覧・集計・写真）。閲覧した人は追加・編集・削除はできません。登録や編集の内容は、開いている相手の画面にもそのまま反映されます。',
+    shareEnable: 'リンクでの閲覧を許可する', copy: 'コピー', copied: 'リンクをコピーしました', shareSend: '共有…',
+    shareText: '私のお酒コレクションです（閲覧専用）', regenerate: 'リンクを作り直す',
+    shareNote: 'リンクは何度送っても同じです。知らない人に渡ってしまったときは「リンクを作り直す」で古いリンクを無効にできます。',
+    shareOffNote: '現在は共有していません。オンにすると、以前と同じリンクで再び閲覧できるようになります。',
+    regenTitle: 'リンクを作り直す', regenBody: '今のリンクは使えなくなり、新しいリンクが作られます。\n閲覧してほしい人には、新しいリンクを送り直してください。', regenIt: '作り直す',
+    shareOnToast: '閲覧用リンクを有効にしました', shareOffToast: '閲覧用リンクを停止しました', regenToast: '新しいリンクを作りました',
   },
   en: {
     appTitle: 'Bottle Collection', loading: 'Loading…',
@@ -983,6 +1042,17 @@ const I18N = {
     taxNone: 'No bottles need migration', taxDone: 'Updated the classification of {n} bottles', taxConfirmBlank: '{n} bottles have no class. Confirm anyway? (You can set it later from the edit screen.)',
     taxConfirmIt: 'Confirm', taxLaterToast: 'You can open this later from “Classification migration” in the ⚙ menu',
     csvSample: 'Y',
+    viewOnly: 'View only', viewDetail: 'Bottle details', viewConnecting: 'Loading the shared collection…',
+    viewInvalid: 'This link is not active.<br>Sharing may have been turned off, or the link was replaced.<br>Please ask the owner for a new link.',
+    viewOffline: 'Could not connect. Please reload where the connection is better.',
+    mShare: 'Sharing', shareMenu: 'Share a view-only link',
+    shareDesc: 'Anyone with the link can view your collection (list, stats and photos) without signing in. Viewers cannot add, edit or delete anything. Your changes appear on their screen as you make them.',
+    shareEnable: 'Allow viewing with the link', copy: 'Copy', copied: 'Link copied', shareSend: 'Share…',
+    shareText: 'My bottle collection (view only)', regenerate: 'Create a new link',
+    shareNote: 'The link stays the same however many times you send it. If it reaches someone it shouldn’t, create a new link to disable the old one.',
+    shareOffNote: 'Sharing is off. Turning it on again re-enables the same link.',
+    regenTitle: 'Create a new link', regenBody: 'The current link will stop working and a new one will be created.\nPlease send the new link to the people you want to share with.', regenIt: 'Create',
+    shareOnToast: 'View-only link enabled', shareOffToast: 'View-only link disabled', regenToast: 'Created a new link',
   },
 };
 const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1118,6 +1188,7 @@ const bottleRef = (id) => (id ? doc(userCol('bottles'), id) : doc(userCol('bottl
 const photoRef = (id) => (id ? doc(userCol('photos'), id) : doc(userCol('photos')));
 const counterRef = () => doc(db, 'users', uid, 'meta', 'counter');
 const importsRef = () => doc(db, 'users', uid, 'meta', 'imports');
+const shareRef = () => doc(db, 'users', uid, 'meta', 'share');   // { enabled, token }（閲覧用リンク）
 
 // 保存用の形にする（画面用の id、旧形式の photoIds・subCategory は含めない）
 function toBottleDoc(b) {
@@ -1190,17 +1261,23 @@ function subscribe() {
       renderAll();
       refreshViewerBottle();
     }
-    // サーバーの最新データを受け取った時点で、No. の重複修正・各種の確認を行う
-    if (!snap.metadata.fromCache) {
+    // サーバーの最新データを受け取った時点で、No. の重複修正・各種の確認を行う（閲覧専用モードでは行わない）
+    if (!snap.metadata.fromCache && !VIEW) {
       if (!snap.metadata.hasPendingWrites) fixDuplicateNumbers();
       checkLegacyMigration();
       if (!taxonomyChecked) { taxonomyChecked = true; openTaxonomyMigration(); }
       if (!importsChecked) { importsChecked = true; checkImports(); }
     }
   }, onListenError));
+  if (VIEW) return;
   unsubs.push(onSnapshot(counterRef(), (snap) => {
     state.metaLastNo = snap.exists() ? (snap.data().lastNo || 0) : 0;
     recomputeLastNo();
+  }, onListenError));
+  unsubs.push(onSnapshot(shareRef(), (snap) => {
+    share.enabled = snap.exists() && snap.data().enabled === true;
+    share.token = snap.exists() ? (snap.data().token || '') : '';
+    renderShare();
   }, onListenError));
 }
 function unsubscribeAll() {
@@ -1209,6 +1286,8 @@ function unsubscribeAll() {
 }
 function onListenError(err) {
   console.error(err);
+  // 閲覧専用モードで読めなくなった＝共有の停止またはリンクの作り直し
+  if (VIEW) { showViewError(err?.code === 'permission-denied' ? 'viewInvalid' : 'viewOffline'); return; }
   toast(err?.code === 'permission-denied' ? t('listenDenied') : t('listenFailed', { e: errText(err) }));
 }
 
@@ -1557,8 +1636,8 @@ function renderList() {
     area.innerHTML = `
       <div class="empty">
         <h2>${esc(t('emptyTitle'))}</h2>
-        <p>${t('emptyBody')}</p>
-        <div class="actions">
+        <p class="owner-only">${t('emptyBody')}</p>
+        <div class="actions owner-only">
           <button type="button" class="btn primary" data-empty="add">${esc(t('emptyAdd'))}</button>
           <button type="button" class="btn" data-empty="samples">${esc(t('emptySamples'))}</button>
         </div>
@@ -1890,8 +1969,14 @@ function updateCalcFields() {
   $('#fUnit').textContent = fmtUnit(unitPrice({ volumeMl: vol, priceTHB: price }));
 }
 
-// フォームを開く（bottle が null なら新規）
+// フォームを開く（bottle が null なら新規）。閲覧専用モードでは編集できない詳細表示として開く
 function openForm(bottle = null) {
+  if (VIEW && !bottle) return;
+  form.readOnly = !!VIEW;
+  $$('#editForm fieldset').forEach((f) => { f.disabled = form.readOnly; });
+  $('#saveBtn').hidden = form.readOnly;
+  $('#editDialog .dlg-foot [data-close]').textContent = form.readOnly ? t('close') : t('cancel');
+  $('.photo-hint').hidden = form.readOnly;
   form.editingId = bottle ? bottle.id : null;
   form.rating = bottle?.rating || 0;
   // 既存写真はドキュメント内のサムネイルで表示（本体は読み込まない）
@@ -1903,7 +1988,7 @@ function openForm(bottle = null) {
     : { category: bottle?.category || CATEGORIES[0], group: bottle?.group || '', style: bottle?.style || '' };
   const legacy = bottle ? (bottle.legacySubCategory || bottle.subCategory || '') : '';
 
-  $('#editTitle').textContent = bottle ? t('editTitleEdit') : t('editTitleNew');
+  $('#editTitle').textContent = form.readOnly ? t('viewDetail') : bottle ? t('editTitleEdit') : t('editTitleNew');
   $('#fNo').textContent = bottle ? displayNo(bottle) : t('noPending', { n: state.lastNo + 1 });
   $('#fDate').value = bottle?.purchaseDate || todayStr();
   $('#fName').value = bottle?.name || '';
@@ -1922,7 +2007,7 @@ function openForm(bottle = null) {
   $('#fStatusIn').value = bottle?.status || STATUSES[0];
   $('#fMemo').value = bottle?.memo || '';
   $('#nameErr').hidden = true;
-  $('#deleteBtn').hidden = !bottle;
+  $('#deleteBtn').hidden = !bottle || form.readOnly;
   $('#metaLine').textContent = bottle
     ? t('metaLine', { c: fmtDateTime(bottle.createdAt), u: fmtDateTime(bottle.updatedAt) }) + (bottle.isSample ? t('metaSample') : '')
     : '';
@@ -1937,6 +2022,7 @@ function openForm(bottle = null) {
   $('#editDialog .dlg-body').scrollTop = 0;
   if (!bottle) $('#fName').focus();
 }
+form.readOnly = false;
 
 function renderPhotoSlots() {
   const html = [];
@@ -1946,6 +2032,8 @@ function renderPhotoSlots() {
     let box, tools = '';
     if (p && p.busy) {
       box = `<div class="slot-busy">${esc(t('processing'))}</div>`;
+    } else if (p && form.readOnly) {
+      box = `<img src="${esc(p.thumb)}" alt="${esc(label)}">`;
     } else if (p) {
       box = `<img src="${esc(p.thumb)}" alt="${esc(label)}">`;
       tools = `<div class="slot-tools">
@@ -1953,7 +2041,7 @@ function renderPhotoSlots() {
         <button type="button" class="del" data-remove="${i}" aria-label="${esc(t('delete'))}">✕</button>
         <button type="button" data-move="${i}" data-dir="1" ${i >= form.photos.length - 1 ? 'disabled' : ''} aria-label="${esc(t('moveNext'))}">▶</button>
       </div>`;
-    } else if (i === form.photos.length) {
+    } else if (i === form.photos.length && !form.readOnly) {
       box = `<div class="slot-add">
         <button type="button" class="btn small" data-pick="camera">${esc(t('takePhoto'))}</button>
         <button type="button" class="btn small" data-pick="file">${esc(t('pickPhoto'))}</button>
@@ -2038,6 +2126,7 @@ function collectForm() {
 }
 
 async function saveForm() {
+  if (form.readOnly) return;
   const data = collectForm();
   if (!data.name) {
     $('#nameErr').hidden = false;
@@ -2722,7 +2811,7 @@ function claimImportFiles(names) {
 
 // fromMenu：⚙メニューから実行した場合（結果が0件でも知らせる）
 async function checkImports(fromMenu = false) {
-  if (!uid || !state.loaded || importsBusy || migrating) return;
+  if (VIEW || !uid || !state.loaded || importsBusy || migrating) return;
   if (!fromMenu && Date.now() - importsLastAt < 10000) return;   // 短時間の連続確認を避ける
   if (!navigator.onLine) { if (fromMenu) toast(t('offlineCantCheck')); return; }
   importsBusy = true;
@@ -2925,6 +3014,118 @@ function applyTaxonomy() {
 }
 
 /* =========================================================
+   閲覧用リンクの共有（持ち主の操作）
+   users/{uid}/meta/share = { enabled, token }。リンクは ?view=<uid>~<token>
+   閲覧の可否は Firestore のルール（firestore.rules）で判定する
+   ========================================================= */
+const share = { enabled: false, token: '' };
+const newToken = () => {
+  const bytes = crypto.getRandomValues(new Uint8Array(24));
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+const shareUrl = () => `${location.origin}${location.pathname}?view=${uid}~${share.token}`;
+
+function renderShare() {
+  if (!$('#shareDialog').open) return;
+  $('#shareEnabled').checked = share.enabled;
+  $('#shareBody').hidden = !share.enabled || !share.token;
+  $('#shareOffNote').hidden = share.enabled;
+  $('#shareUrl').value = share.token ? shareUrl() : '';
+  $('#shareSend').hidden = !navigator.share;
+}
+function openShareDialog() {
+  const dlg = $('#shareDialog');
+  if (!dlg.open) dlg.showModal();
+  renderShare();
+}
+function writeShare(data) {
+  Object.assign(share, data);
+  const batch = writeBatch(db);
+  batch.set(shareRef(), { ...data, updatedAt: Date.now() }, { merge: true });
+  commitBatch(batch);
+  renderShare();
+}
+// 閲覧者の登録（users/{uid}/viewers）を消す（合言葉が変わると無効になるため、作り直し時に片付ける）
+async function clearViewers() {
+  try {
+    const snap = await getDocs(userCol('viewers'));
+    commitOps(snap.docs.map((d) => (batch) => batch.delete(d.ref)));
+  } catch (err) { console.warn(err); }
+}
+function setupShare() {
+  const dlg = $('#shareDialog');
+  $$('#shareDialog [data-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  $('#shareEnabled').addEventListener('change', (e) => {
+    const on = e.target.checked;
+    writeShare(on ? { enabled: true, token: share.token || newToken() } : { enabled: false });
+    toast(t(on ? 'shareOnToast' : 'shareOffToast'));
+  });
+  $('#shareCopy').addEventListener('click', async () => {
+    const input = $('#shareUrl');
+    try { await navigator.clipboard.writeText(input.value); } catch (_) { input.select(); document.execCommand('copy'); }
+    toast(t('copied'));
+  });
+  $('#shareSend').addEventListener('click', () => {
+    navigator.share?.({ title: t('appTitle'), text: t('shareText'), url: shareUrl() }).catch(() => { /* キャンセル */ });
+  });
+  $('#shareRegen').addEventListener('click', async () => {
+    dlg.close();
+    const ok = await confirmDanger(t('regenTitle'), t('regenBody'), t('regenIt'));
+    if (ok) {
+      writeShare({ token: newToken() });
+      clearViewers();
+      toast(t('regenToast'));
+    }
+    openShareDialog();
+  });
+}
+
+/* =========================================================
+   閲覧専用モード（閲覧用リンクで開いた人）
+   匿名ログインし、リンクの合言葉を users/{持ち主}/viewers/{自分} に登録してから読み込む
+   ========================================================= */
+// 開いたままの画面の読み込みは、共有の停止・リンクの作り直し後も自動では止まらないため、
+// 一定間隔と画面が前面に戻ったときに、まだ読めるかをサーバーに確認する
+const VIEW_RECHECK_MS = 30000;
+let viewCheckTimer = null;
+async function verifyViewAccess() {
+  if (!VIEW || document.body.dataset.auth !== 'view' || !navigator.onLine) return;
+  try {
+    await getDocsFromServer(query(userCol('bottles'), limit(1)));
+  } catch (err) {
+    if (err?.code === 'permission-denied') showViewError('viewInvalid');
+  }
+}
+function showViewError(key) {
+  clearInterval(viewCheckTimer);
+  unsubscribeAll();
+  document.body.dataset.auth = 'loading';
+  $('#bootMsg').innerHTML = t(key);
+}
+async function onViewerAuth(user) {
+  if (!user) {
+    try { await signInAnonymously(auth); } catch (err) { console.error(err); showViewError('viewOffline'); }
+    return;   // ログインできると、もう一度この関数が呼ばれる
+  }
+  $('#bootMsg').textContent = t('viewConnecting');
+  try {
+    await setDoc(doc(db, 'users', VIEW.uid, 'viewers', user.uid), { token: VIEW.token, createdAt: Date.now() });
+  } catch (err) {
+    console.warn(err);
+    showViewError(err?.code === 'permission-denied' ? 'viewInvalid' : 'viewOffline');
+    return;
+  }
+  uid = VIEW.uid;
+  document.body.dataset.auth = 'view';
+  subscribe();
+  renderAll();
+  renderSync();
+  clearInterval(viewCheckTimer);
+  viewCheckTimer = setInterval(verifyViewAccess, VIEW_RECHECK_MS);
+}
+
+/* =========================================================
    ログイン／ログアウト
    ========================================================= */
 const AUTH_ERRORS = {
@@ -2972,7 +3173,7 @@ async function logout() {
 
 function onAuthChanged(user) {
   unsubscribeAll();
-  ['#editDialog', '#viewerDialog', '#askDialog', '#taxDialog'].forEach((sel) => { const d = $(sel); if (d.open) d.close(); });
+  ['#editDialog', '#viewerDialog', '#askDialog', '#taxDialog', '#shareDialog'].forEach((sel) => { const d = $(sel); if (d.open) d.close(); });
   Object.assign(state, { bottles: [], loaded: false, metaLastNo: 0, lastNo: 0 });
   Object.assign(sync, { pendingWrites: false, fromCache: true });
   photoDataCache.clear();
@@ -3022,7 +3223,8 @@ function applyLang(l) {
   renderSync();
   renderAll();
   if ($('#taxDialog').open) renderTaxonomy();
-  if ($('#editDialog').open) $('#editTitle').textContent = form.editingId ? t('editTitleEdit') : t('editTitleNew');
+  if ($('#editDialog').open) $('#editTitle').textContent = form.readOnly ? t('viewDetail') : form.editingId ? t('editTitleEdit') : t('editTitleNew');
+  renderShare();
 }
 function toggleLang() {
   const next = lang === 'en' ? 'ja' : 'en';
@@ -3137,6 +3339,7 @@ function setupEvents() {
       'taxonomy': () => openTaxonomyMigration(true),
       'check-imports': () => checkImports(true),
       'lang': toggleLang,
+      'share': openShareDialog,
       'logout': logout,
     })[btn.dataset.action]();
   });
@@ -3160,7 +3363,7 @@ function setupEvents() {
 
   // アプリを開き直したとき（前面に戻ったとき）に新しい登録データを確認
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') checkImports();
+    if (document.visibilityState === 'visible') { checkImports(); verifyViewAccess(); }
   });
 
   // 画面幅が変わったらグラフを描き直す
@@ -3183,6 +3386,7 @@ async function init() {
   setupForm();
   setupViewer();
   setupTaxonomy();
+  setupShare();
   applyLang(lsGet(LS_LANG) || 'ja');
 
   // オフラインでも起動できるよう Service Worker を登録（GitHub Pages などの https 環境のみ）
@@ -3190,7 +3394,12 @@ async function init() {
     navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('Service Worker の登録に失敗しました', err));
   }
 
-  onAuthStateChanged(auth, onAuthChanged);
+  if (VIEW) {
+    $('#bootMsg').textContent = t('viewConnecting');
+    onAuthStateChanged(auth, onViewerAuth);
+  } else {
+    onAuthStateChanged(auth, onAuthChanged);
+  }
 }
 init();
 </script>

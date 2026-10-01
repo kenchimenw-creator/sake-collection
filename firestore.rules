@@ -1,0 +1,44 @@
+rules_version = '2';
+
+// お酒コレクション：Cloud Firestore セキュリティルール
+// Firebase コンソール → Firestore Database → ルール に、この内容をそのまま貼り付けて「公開」する
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 閲覧用リンクの設定（users/{uid}/meta/share = { enabled, token }）
+    function shareDoc(uid) {
+      return /databases/$(database)/documents/users/$(uid)/meta/share;
+    }
+    function shareOn(uid) {
+      return exists(shareDoc(uid)) && get(shareDoc(uid)).data.enabled == true;
+    }
+    // 閲覧者：共有中で、登録した合言葉が現在の合言葉と一致する匿名ユーザー
+    function grantDoc(uid) {
+      return /databases/$(database)/documents/users/$(uid)/viewers/$(request.auth.uid);
+    }
+    function isViewer(uid) {
+      return request.auth != null && shareOn(uid) && exists(grantDoc(uid))
+        && get(grantDoc(uid)).data.token == get(shareDoc(uid)).data.token;
+    }
+
+    // 本人：自分のデータをすべて読み書きできる
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // 閲覧用リンク：お酒の記録と写真を「読む」だけ（書き込みは一切不可）
+    match /users/{uid}/bottles/{id} {
+      allow read: if isViewer(uid);
+    }
+    match /users/{uid}/photos/{id} {
+      allow read: if isViewer(uid);
+    }
+
+    // 閲覧者の登録：リンクの合言葉を自分の匿名IDで書き込む（合言葉が違えば拒否）
+    match /users/{uid}/viewers/{vid} {
+      allow create, update: if request.auth != null && request.auth.uid == vid && shareOn(uid)
+        && request.resource.data.keys().hasOnly(['token', 'createdAt'])
+        && request.resource.data.token == get(shareDoc(uid)).data.token;
+    }
+  }
+}
