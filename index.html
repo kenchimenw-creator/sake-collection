@@ -933,6 +933,7 @@ const I18N = {
     offlineCantCheck: 'オフラインのため確認できません', importsOfflineState: 'オフラインのため取り込み状況を確認できません', badFormat: '形式が不正です',
     importsBad: '読み込めない登録データがあります：{list}', importsNone: '新しい登録データはありません', importsTitle: '新しい登録データ',
     importsBody: '新しい登録データが{n}件あります。\n\n{lines}\n\nNo. は続きから採番されます。', andMore: 'ほか{n}件', unnamed: '（名称未設定）',
+    importsPhotos: '写真を準備しています…', importsPhotoFail: '（写真{n}枚は読み込めませんでした）',
     later: '後で', importIt: '取り込む', importsElsewhere: '他の端末で取り込み済みです', importsDone: '{n}件を取り込みました', importsCheckFailed: '登録データを確認できませんでした：{e}',
     logoutBody: '{email} からログアウトしますか？', logoutPending: '\n\nまだクラウドに送信されていない変更があります。次に同じアカウントでログインしたときに送信されます。',
     taxTitle: '分類の移行', confirm: '確定',
@@ -1035,6 +1036,7 @@ const I18N = {
     offlineCantCheck: 'Cannot check while offline', importsOfflineState: 'Cannot check import status while offline', badFormat: 'Invalid format',
     importsBad: 'Some registration files could not be read: {list}', importsNone: 'No new registration data', importsTitle: 'New registration data',
     importsBody: '{n} new bottles are ready to import.\n\n{lines}\n\nNumbers will continue from the current ones.', andMore: 'and {n} more', unnamed: '(no name)',
+    importsPhotos: 'Preparing photos…', importsPhotoFail: ' ({n} photos could not be loaded)',
     later: 'Later', importIt: 'Import', importsElsewhere: 'Already imported on another device', importsDone: 'Imported {n} bottles', importsCheckFailed: 'Could not check registration data: {e}',
     logoutBody: 'Sign out of {email}?', logoutPending: '\n\nSome changes have not been sent yet. They will be sent the next time you sign in with this account.',
     taxTitle: 'Classification migration', confirm: 'Confirm',
@@ -2782,6 +2784,19 @@ async function migrateLegacy(ldb, bottles) {
    旧形式（subCategory のみ・種別「バーボン」）のデータは、分類の自動判定で新しい形式に変換する
    ========================================================= */
 const IMPORT_FILE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*\.json$/;
+// 登録データに添える写真：imports/photos/ 内の画像ファイル（imports/ からの相対パス）
+const IMPORT_PHOTO_RE = /^photos\/[A-Za-z0-9][A-Za-z0-9._-]*\.(jpe?g|png|webp)$/i;
+const importPhotoSources = (raw) => (Array.isArray(raw?.photos) ? raw.photos : [])
+  .filter((src) => typeof src === 'string' && (IMPORT_PHOTO_RE.test(src) || /^data:image\//.test(src))).slice(0, MAX_PHOTOS);
+// 写真ファイルを取得（常に最新を取得する。data URL はそのまま）
+async function loadImportPhoto(src) {
+  if (src.startsWith('data:')) return src;
+  const url = new URL(`imports/${src}`, location.href);
+  url.searchParams.set('t', Date.now());
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.blob();
+}
 let importsChecked = false;   // ログイン後の初回確認を済ませたか
 let importsBusy = false;
 let importsLastAt = 0;
@@ -2852,7 +2867,8 @@ async function checkImports(fromMenu = false) {
 
     if (uid !== myUid) return;
     const bottles = files.flatMap((f) => f.bottles);
-    const lines = bottles.slice(0, 8).map((b) => `・${String(b?.name || t('unnamed'))}${isValidYMD(b?.purchaseDate) ? `（${b.purchaseDate}）` : ''}`);
+    const lines = bottles.slice(0, 8).map((b) => `・${String(b?.name || t('unnamed'))}${isValidYMD(b?.purchaseDate) ? `（${b.purchaseDate}）` : ''}` +
+      (importPhotoSources(b).length ? ` 📷${importPhotoSources(b).length}` : ''));
     if (bottles.length > 8) lines.push(t('andMore', { n: bottles.length - 8 }));
     const v = await ask({
       title: t('importsTitle'),
@@ -2861,16 +2877,29 @@ async function checkImports(fromMenu = false) {
     });
     if (v !== 'ok' || uid !== myUid) return;
 
+    // 写真は取り込みを確定する前に読み込み、手動で追加したときと同じように縮小・圧縮しておく
+    if (bottles.some((b) => importPhotoSources(b).length)) toast(t('importsPhotos'));
+    let photoFail = 0;
+    const loaded = [];
+    for (const f of files) {
+      const items = [];
+      for (const raw of f.bottles) {
+        const photos = [];
+        for (const src of importPhotoSources(raw)) {
+          try { photos.push(await preparePhoto(await loadImportPhoto(src))); } catch (err) { console.warn(err); photoFail++; }
+        }
+        items.push({ rec: { ...normalizeBottle(raw || {}), isSample: false, sampleNo: null }, photos });
+      }
+      loaded.push({ name: f.name, items });
+    }
+    if (uid !== myUid) return;
+
     const mine = await claimImportFiles(files.map((f) => f.name));
-    const targets = files.filter((f) => mine.includes(f.name));
-    if (!targets.length) { toast(t('importsElsewhere')); return; }
-    const prepared = targets.flatMap((f) => f.bottles.map((raw) => ({
-      rec: { ...normalizeBottle(raw || {}), isSample: false, sampleNo: null },
-      photos: [],
-    })));
+    const prepared = loaded.filter((l) => mine.includes(l.name)).flatMap((l) => l.items);
+    if (!prepared.length) { toast(t('importsElsewhere')); return; }
     // 既存のインポートの「追加」と同じ扱い（No. は続きから）
     writePrepared(prepared);
-    toast(t('importsDone', { n: prepared.length }));
+    toast(t('importsDone', { n: prepared.length }) + (photoFail ? t('importsPhotoFail', { n: photoFail }) : ''));
   } catch (err) {
     console.error(err);
     if (fromMenu) toast(t('importsCheckFailed', { e: errText(err) }));
