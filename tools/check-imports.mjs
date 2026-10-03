@@ -29,6 +29,9 @@ if (new Set(files).size !== files.length) errors.push('index.json: 同じファ�
 
 const NAME_RE = /^\d{8}-\d{4}-[a-z0-9]+(?:-[a-z0-9]+)*\.json$/;
 const YMD_RE = /^\d{4}-\d{2}-\d{2}$/;
+const PHOTO_RE = /^photos\/[A-Za-z0-9][A-Za-z0-9._-]*\.(jpe?g|png|webp)$/i;
+const MAX_PHOTOS = 3;
+const usedPhotos = new Set();
 const isNum = (v) => v === null || (typeof v === 'number' && Number.isFinite(v));
 
 for (const name of files) {
@@ -45,7 +48,16 @@ for (const name of files) {
     const be = (msg) => e(`bottles[${i}] ${msg}`);
     const bw = (msg) => warns.push(`${name}: bottles[${i}] ${msg}`);
     if ('no' in b) be('no は付けないでください');
-    if (!Array.isArray(b.photos) || b.photos.length) be('photos は空配列にしてください');
+    // 写真：ユーザーから受け取ったものだけ imports/photos/ に置いてパスで指定（なければ空配列）
+    if (!Array.isArray(b.photos)) be('photos は配列にしてください（写真がなければ []）');
+    else {
+      if (b.photos.length > MAX_PHOTOS) be(`photos は${MAX_PHOTOS}枚までです`);
+      b.photos.forEach((src) => {
+        if (typeof src !== 'string' || !PHOTO_RE.test(src)) { be(`photos「${src}」は "photos/<ファイル名>.jpg" の形式にしてください`); return; }
+        if (!fs.existsSync(path.join(dir, src))) be(`photos「${src}」のファイルがありません`);
+        usedPhotos.add(src);
+      });
+    }
     if (!b.name || typeof b.name !== 'string') be('name がありません');
     // 購入日が不明なら省略可（アプリの取り込み日で登録される）
     if (b.purchaseDate !== undefined && !YMD_RE.test(b.purchaseDate)) be('purchaseDate は YYYY-MM-DD にしてください（不明なら項目ごと省略）');
@@ -74,6 +86,13 @@ for (const name of files) {
 }
 for (const f of fs.readdirSync(dir)) {
   if (f !== 'index.json' && f.endsWith('.json') && !files.includes(f)) warns.push(`${f}: index.json に載っていません（アプリに取り込まれません）`);
+}
+
+const photoDir = path.join(dir, 'photos');
+if (fs.existsSync(photoDir)) {
+  for (const f of fs.readdirSync(photoDir)) {
+    if (!usedPhotos.has(`photos/${f}`)) warns.push(`photos/${f}: どの登録データからも使われていません（不要なら削除）`);
+  }
 }
 
 warns.forEach((w) => console.log('注意:', w));
