@@ -1,0 +1,26 @@
+{
+  "app": "sake-collection",
+  "version": 2,
+  "source": "claude-code",
+  "createdAt": "2026-10-07T22:29:00+07:00",
+  "bottles": [
+    {
+      "purchaseDate": "2026-10-07",
+      "name": "เหยี่ยวเงิน ヤウ・グン（Yeow Ngern）",
+      "brand": "United Thai Distillers",
+      "category": "その他",
+      "group": "タイ地酒・クラフトスピリッツ",
+      "style": "ホワイトスピリッツ",
+      "country": "タイ",
+      "region": "バンコク",
+      "volumeMl": 700,
+      "abv": 40,
+      "priceTHB": 159,
+      "shop": "Tops",
+      "status": "開栓済み",
+      "rating": 0,
+      "memo": "United Thai Distillers が造る、無色透明のタイのスピリッツ。クセが少なくすっきりしていて、ストレートでも割り材やカクテルにも使いやすい手頃な一本。",
+      "photos": ["photos/20261007-2229-yeow-ngern-1.jpg"]
+    }
+  ]
+}
