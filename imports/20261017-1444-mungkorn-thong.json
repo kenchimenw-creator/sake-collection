@@ -1,0 +1,26 @@
+{
+  "app": "sake-collection",
+  "version": 2,
+  "source": "claude-code",
+  "createdAt": "2026-10-17T14:44:00+07:00",
+  "bottles": [
+    {
+      "purchaseDate": "2026-10-17",
+      "name": "มังกรทอง マンコーン・トン（Mungkorn Thong）",
+      "brand": "サンソム社（ThaiBev）",
+      "category": "ラム",
+      "group": "その他ラム",
+      "style": "タイ ブレンデッドスピリッツ",
+      "country": "タイ",
+      "region": "",
+      "volumeMl": 625,
+      "abv": 35,
+      "priceTHB": 194,
+      "shop": "Big C",
+      "status": "開栓済み",
+      "rating": 0,
+      "memo": "ThaiBev 傘下のサンソム社が造る、金色の龍のラベルが目印のタイのブレンデッドスピリッツ。糖蜜由来の甘い香りとしっかりした風味があり、ソーダ割りやコーラ割りで親しまれる手頃な一本。",
+      "photos": ["photos/20261017-1444-mungkorn-thong-1.jpg"]
+    }
+  ]
+}
