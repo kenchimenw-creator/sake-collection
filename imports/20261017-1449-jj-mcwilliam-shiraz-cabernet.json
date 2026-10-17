@@ -1,0 +1,26 @@
+{
+  "app": "sake-collection",
+  "version": 2,
+  "source": "claude-code",
+  "createdAt": "2026-10-17T14:49:00+07:00",
+  "bottles": [
+    {
+      "purchaseDate": "2026-10-17",
+      "name": "J.J. マクウィリアム シラーズ・カベルネ（McWilliam's J.J. McWilliam Shiraz Cabernet）",
+      "brand": "マクウィリアムズ（McWilliam's）",
+      "category": "ワイン",
+      "group": "赤",
+      "style": "シラーズ・カベルネ",
+      "country": "オーストラリア",
+      "region": "サウス・イースタン・オーストラリア",
+      "volumeMl": 750,
+      "abv": 13.5,
+      "priceTHB": 389,
+      "shop": "Big C",
+      "status": "開栓済み",
+      "rating": 0,
+      "memo": "1877年創業のマクウィリアムズが手がける、シラーズとカベルネ・ソーヴィニヨンのブレンド。プラムやカシスの果実味に樽由来のスパイスが重なる、柔らかなミディアムボディ。2024年ヴィンテージ。",
+      "photos": ["photos/20261017-1449-jj-mcwilliam-shiraz-cabernet-1.png"]
+    }
+  ]
+}
