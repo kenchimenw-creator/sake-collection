@@ -1,0 +1,26 @@
+{
+  "app": "sake-collection",
+  "version": 2,
+  "source": "claude-code",
+  "createdAt": "2026-11-07T12:19:00+07:00",
+  "bottles": [
+    {
+      "purchaseDate": "2026-11-07",
+      "name": "シープディップ ブレンデッドモルト スコッチウイスキー（Sheep Dip Blended Malt）",
+      "brand": "イアン・マクロード・ディスティラーズ（Ian Macleod Distillers）",
+      "category": "ウイスキー",
+      "group": "スコッチ",
+      "style": "ブレンデッドモルト",
+      "country": "スコットランド",
+      "region": "",
+      "volumeMl": 700,
+      "abv": 40,
+      "priceTHB": 1890,
+      "shop": "Tops（Central Ladprao）",
+      "status": "開栓済み",
+      "rating": 0,
+      "memo": "スコットランド各地の蒸溜所のモルト原酒だけをブレンドした、グレーンを含まないブレンデッドモルト。5年以上熟成させた原酒を使い、蜂蜜やバニラ、ドライフルーツの甘さと軽いスパイスが感じられる。",
+      "photos": ["photos/20261107-1219-sheep-dip-1.jpg"]
+    }
+  ]
+}
